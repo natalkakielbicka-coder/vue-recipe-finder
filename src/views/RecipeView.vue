@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -7,6 +7,28 @@ const route = useRoute()
 const recipe = ref(null)
 const isLoading = ref(false)
 const errorMessage = ref('')
+
+const ingredients = computed(() => {
+  if (!recipe.value) {
+    return []
+  }
+
+  const result = []
+
+  for (let i = 1; i <= 20; i++) {
+    const ingredient = recipe.value[`strIngredient${i}`]
+    const measure = recipe.value[`strMeasure${i}`]
+
+    if (ingredient && ingredient.trim()) {
+      result.push({
+        ingredient,
+        measure,
+      })
+    }
+  }
+
+  return result
+})
 
 async function fetchRecipe() {
   isLoading.value = true
@@ -49,6 +71,14 @@ onMounted(fetchRecipe)
 
       <p>{{ recipe.strCategory }}</p>
       <p>{{ recipe.strArea }}</p>
+
+      <h2>Składniki</h2>
+
+      <ul>
+        <li v-for="item in ingredients" :key="item.ingredient">
+          {{ item.measure }} {{ item.ingredient }}
+        </li>
+      </ul>
 
       <h2>Instrukcja</h2>
 
