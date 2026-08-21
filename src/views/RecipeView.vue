@@ -1,13 +1,60 @@
 <script setup>
+import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
+
+const recipe = ref(null)
+const isLoading = ref(false)
+const errorMessage = ref('')
+
+async function fetchRecipe() {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${route.params.id}`,
+    )
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać przepisu.')
+    }
+
+    const data = await response.json()
+
+    recipe.value = data.meals?.[0] || null
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(fetchRecipe)
 </script>
 
 <template>
   <section class="recipe-view">
-    <h1>Przepis</h1>
+    <p v-if="isLoading">Ładowanie przepisu...</p>
 
-    <p>ID przepisu: {{ route.params.id }}</p>
+    <p v-else-if="errorMessage">
+      {{ errorMessage }}
+    </p>
+
+    <div v-else-if="recipe">
+      <h1>{{ recipe.strMeal }}</h1>
+
+      <img :src="recipe.strMealThumb" :alt="recipe.strMeal" />
+
+      <p>{{ recipe.strCategory }}</p>
+      <p>{{ recipe.strArea }}</p>
+
+      <h2>Instrukcja</h2>
+
+      <p>{{ recipe.strInstructions }}</p>
+    </div>
+
+    <p v-else>Nie znaleziono przepisu.</p>
   </section>
 </template>
