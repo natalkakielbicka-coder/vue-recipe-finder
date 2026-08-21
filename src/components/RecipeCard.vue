@@ -6,11 +6,26 @@ defineProps({
     type: Object,
     required: true,
   },
+  searchQuery: {
+    type: String,
+    default: '',
+  },
 })
 </script>
 
 <template>
-  <RouterLink :to="`/recipe/${recipe.idMeal}`" class="recipe-card-link">
+  <RouterLink
+    :to="{
+      name: 'recipe',
+      params: {
+        id: recipe.idMeal,
+      },
+      query: {
+        q: searchQuery,
+      },
+    }"
+    class="recipe-card-link"
+  >
     <article class="recipe-card">
       <img :src="recipe.strMealThumb" :alt="recipe.strMeal" />
 

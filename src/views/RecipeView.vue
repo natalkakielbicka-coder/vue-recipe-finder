@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 
 const route = useRoute()
 
@@ -58,6 +58,15 @@ onMounted(fetchRecipe)
 
 <template>
   <section class="recipe-view">
+    <RouterLink
+      :to="{
+        name: 'home',
+        query: route.query.q ? { q: route.query.q } : {},
+      }"
+    >
+      ← Wróć do wyszukiwania
+    </RouterLink>
+
     <p v-if="isLoading">Ładowanie przepisu...</p>
 
     <p v-else-if="errorMessage">
