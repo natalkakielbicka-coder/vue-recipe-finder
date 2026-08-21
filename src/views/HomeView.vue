@@ -5,24 +5,40 @@ import RecipeCard from '@/components/RecipeCard.vue'
 const searchQuery = ref('')
 const recipes = ref([])
 const isLoading = ref(false)
+const errorMessage = ref('')
+const hasSearched = ref(false)
 
 async function searchRecipes() {
   if (!searchQuery.value.trim()) {
     recipes.value = []
+    errorMessage.value = ''
+    hasSearched.value = false
     return
   }
 
   isLoading.value = true
+  errorMessage.value = ''
+  hasSearched.value = false
 
-  const response = await fetch(
-    `https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery.value}`,
-  )
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/search.php?s=${searchQuery.value}`,
+    )
 
-  const data = await response.json()
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać przepisów.')
+    }
 
-  recipes.value = data.meals || []
+    const data = await response.json()
 
-  isLoading.value = false
+    recipes.value = data.meals || []
+  } catch (error) {
+    errorMessage.value = error.message
+    recipes.value = []
+  } finally {
+    isLoading.value = false
+    hasSearched.value = true
+  }
 }
 </script>
 
@@ -34,12 +50,16 @@ async function searchRecipes() {
     <form @submit.prevent="searchRecipes">
       <input v-model="searchQuery" type="text" placeholder="Wpisz nazwę dania..." />
 
-      <button type="submit">Szukaj</button>
+      <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
     </form>
 
     <p v-if="isLoading">Ładowanie...</p>
 
-    <p v-else-if="searchQuery && recipes.length === 0">Brak wyników.</p>
+    <p v-else-if="errorMessage">
+      {{ errorMessage }}
+    </p>
+
+    <p v-else-if="hasSearched && recipes.length === 0">Brak wyników.</p>
 
     <div class="recipes">
       <RecipeCard v-for="recipe in recipes" :key="recipe.idMeal" :recipe="recipe" />
