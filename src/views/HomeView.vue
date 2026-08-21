@@ -81,13 +81,13 @@ onMounted(() => {
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
     </form>
 
-    <p v-if="isLoading">Ładowanie...</p>
+    <p v-if="isLoading" class="status-message">Ładowanie...</p>
 
-    <p v-else-if="errorMessage">
+    <p v-else-if="errorMessage" class="status-message status-message--error">
       {{ errorMessage }}
     </p>
 
-    <p v-else-if="hasSearched && recipes.length === 0">Brak wyników.</p>
+    <p v-else-if="hasSearched && recipes.length === 0" class="status-message">Brak wyników.</p>
 
     <div class="recipes">
       <RecipeCard
@@ -101,3 +101,111 @@ onMounted(() => {
     <p>Szukasz: {{ searchQuery }}</p>
   </section>
 </template>
+
+<style scoped>
+.home {
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 80px 0;
+}
+
+.home > h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.home > p {
+  margin: 20px 0 40px;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+form {
+  display: flex;
+  gap: 12px;
+  max-width: 700px;
+  margin-bottom: 48px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 20px;
+  border: 1px solid #deded6;
+  border-radius: 12px;
+  background: #ffffff;
+  outline: none;
+}
+
+input:focus {
+  border-color: #1f2937;
+}
+
+button {
+  padding: 16px 26px;
+  border-radius: 12px;
+  background: #1f2937;
+  color: white;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recipes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.status-message {
+  margin: -24px 0 40px;
+  padding: 16px 20px;
+  border: 1px solid #deded6;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #6b7280;
+}
+
+.status-message--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+button {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+button:not(:disabled):hover {
+  background: #374151;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+  .recipes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .home {
+    width: min(100% - 28px, 1200px);
+    padding: 48px 0;
+  }
+
+  form {
+    flex-direction: column;
+  }
+
+  .recipes {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

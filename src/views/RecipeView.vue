@@ -67,33 +67,173 @@ onMounted(fetchRecipe)
       ← Wróć do wyszukiwania
     </RouterLink>
 
-    <p v-if="isLoading">Ładowanie przepisu...</p>
+    <p v-if="isLoading" class="status-message">Ładowanie przepisu...</p>
 
-    <p v-else-if="errorMessage">
+    <p v-else-if="errorMessage" class="status-message status-message--error">
       {{ errorMessage }}
     </p>
 
-    <div v-else-if="recipe">
-      <h1>{{ recipe.strMeal }}</h1>
+    <div v-else-if="recipe" class="recipe-details">
+      <div class="recipe-details__image">
+        <img :src="recipe.strMealThumb" :alt="recipe.strMeal" />
+      </div>
 
-      <img :src="recipe.strMealThumb" :alt="recipe.strMeal" />
+      <div class="recipe-details__content">
+        <div class="recipe-details__meta">
+          <span v-if="recipe.strCategory">
+            {{ recipe.strCategory }}
+          </span>
 
-      <p>{{ recipe.strCategory }}</p>
-      <p>{{ recipe.strArea }}</p>
+          <span v-if="recipe.strArea">
+            {{ recipe.strArea }}
+          </span>
+        </div>
 
-      <h2>Składniki</h2>
+        <h1>{{ recipe.strMeal }}</h1>
 
-      <ul>
-        <li v-for="item in ingredients" :key="item.ingredient">
-          {{ item.measure }} {{ item.ingredient }}
-        </li>
-      </ul>
+        <h2>Składniki</h2>
 
-      <h2>Instrukcja</h2>
+        <ul class="ingredients">
+          <li v-for="item in ingredients" :key="item.ingredient">
+            <span>{{ item.ingredient }}</span>
+            <strong>{{ item.measure }}</strong>
+          </li>
+        </ul>
+      </div>
 
-      <p>{{ recipe.strInstructions }}</p>
+      <div class="recipe-details__instructions">
+        <h2>Instrukcja</h2>
+        <p>{{ recipe.strInstructions }}</p>
+      </div>
     </div>
 
     <p v-else>Nie znaleziono przepisu.</p>
   </section>
 </template>
+
+<style scoped>
+.recipe-view {
+  width: min(1200px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+.recipe-view > a {
+  display: inline-flex;
+  margin-bottom: 40px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.recipe-view > a:hover {
+  color: #1f2937;
+}
+
+.recipe-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+}
+
+.recipe-details__image img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 24px;
+}
+
+.recipe-details__content h1 {
+  margin: 16px 0 40px;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.recipe-details__content h2,
+.recipe-details__instructions h2 {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+}
+
+.recipe-details__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recipe-details__meta span {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #f1f1eb;
+  color: #62625d;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ingredients {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ingredients li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e5dc;
+}
+
+.ingredients strong {
+  text-align: right;
+  font-weight: 600;
+}
+
+.recipe-details__instructions {
+  grid-column: 1 / -1;
+  max-width: 800px;
+  padding-top: 24px;
+}
+
+.recipe-details__instructions p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+.status-message {
+  padding: 18px 20px;
+  border: 1px solid #deded6;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #6b7280;
+}
+
+.status-message--error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+@media (max-width: 800px) {
+  .recipe-view {
+    width: min(100% - 28px, 1200px);
+    padding-top: 32px;
+  }
+
+  .recipe-details {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .recipe-details__content h1 {
+    margin-bottom: 32px;
+  }
+
+  .recipe-details__instructions {
+    grid-column: auto;
+    padding-top: 8px;
+  }
+}
+</style>
