@@ -1,5 +1,5 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { useFavorites } from '@/composables/useFavorites'
 
 defineProps({
@@ -13,6 +13,7 @@ defineProps({
   },
 })
 
+const route = useRoute()
 const { isFavorite, toggleFavorite } = useFavorites()
 </script>
 
@@ -34,9 +35,7 @@ const { isFavorite, toggleFavorite } = useFavorites()
         params: {
           id: recipe.idMeal,
         },
-        query: {
-          q: searchQuery,
-        },
+        query: route.query,
       }"
       class="recipe-card-link"
     >

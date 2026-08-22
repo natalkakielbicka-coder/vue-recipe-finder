@@ -226,6 +226,11 @@ async function resetSearch() {
 }
 
 async function fetchRecipesByCategory(category) {
+  if (browseCategory.value === category) {
+    await resetSearch()
+    return
+  }
+
   isLoading.value = true
   errorMessage.value = ''
   hasSearched.value = false

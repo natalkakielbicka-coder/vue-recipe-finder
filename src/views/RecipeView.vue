@@ -64,10 +64,10 @@ onMounted(fetchRecipe)
     <RouterLink
       :to="{
         name: 'home',
-        query: route.query.q ? { q: route.query.q } : {},
+        query: route.query,
       }"
     >
-      ← Wróć do wyszukiwania
+      ← Wróć do przepisów
     </RouterLink>
 
     <p v-if="isLoading" class="status-message">Ładowanie przepisu...</p>
