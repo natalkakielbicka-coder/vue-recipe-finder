@@ -27,6 +27,7 @@ const ingredientsList = ref([])
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
 const nameSuggestions = ref([])
+let nameSuggestionsTimeout = null
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -435,6 +436,8 @@ function handleSuggestionKeydown(event) {
 function handleSearchInput() {
   activeSuggestionIndex.value = -1
 
+  clearTimeout(nameSuggestionsTimeout)
+
   if (searchMode.value === 'ingredient') {
     showIngredientSuggestions.value = true
     nameSuggestions.value = []
@@ -442,7 +445,15 @@ function handleSearchInput() {
   }
 
   showIngredientSuggestions.value = false
-  fetchNameSuggestions()
+
+  if (searchQuery.value.trim().length < 2) {
+    nameSuggestions.value = []
+    return
+  }
+
+  nameSuggestionsTimeout = setTimeout(() => {
+    fetchNameSuggestions()
+  }, 300)
 }
 
 function closeSuggestions() {
