@@ -56,6 +56,26 @@ async function fetchRecipe() {
   }
 }
 
+const youtubeEmbedUrl = computed(() => {
+  if (!recipe.value?.strYoutube) {
+    return ''
+  }
+
+  const url = recipe.value.strYoutube
+
+  let videoId = ''
+
+  if (url.includes('watch?v=')) {
+    videoId = url.split('watch?v=')[1]?.split('&')[0]
+  }
+
+  if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1]?.split('?')[0]
+  }
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : ''
+})
+
 onMounted(fetchRecipe)
 </script>
 
@@ -119,6 +139,34 @@ onMounted(fetchRecipe)
       <div class="recipe-details__instructions">
         <h2>Instrukcja</h2>
         <p>{{ recipe.strInstructions }}</p>
+
+        <div v-if="recipe.strSource || recipe.strYoutube" class="recipe-links">
+          <a
+            v-if="recipe.strSource"
+            :href="recipe.strSource"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Zobacz oryginalny przepis
+          </a>
+
+          <a
+            v-if="recipe.strYoutube"
+            :href="recipe.strYoutube"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Zobacz film na YouTube
+          </a>
+        </div>
+
+        <div v-if="youtubeEmbedUrl" class="recipe-video">
+          <iframe
+            :src="youtubeEmbedUrl"
+            :title="`Film: ${recipe.strMeal}`"
+            allowfullscreen
+          ></iframe>
+        </div>
       </div>
     </div>
 
@@ -264,6 +312,44 @@ onMounted(fetchRecipe)
 
 .favorite-button.active {
   color: #b42318;
+}
+
+.recipe-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.recipe-links a {
+  display: inline-flex;
+  padding: 12px 18px;
+
+  border: 1px solid #deded6;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #1f2937;
+
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.recipe-links a:hover {
+  background: #f1f1eb;
+}
+
+.recipe-video {
+  margin-top: 40px;
+  overflow: hidden;
+  border-radius: 16px;
+  aspect-ratio: 16 / 9;
+}
+
+.recipe-video iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 @media (max-width: 800px) {
