@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '@/components/RecipeCard.vue'
 import CategoryBrowser from '@/components/CategoryBrowser.vue'
+import RecipeFilters from '@/components/RecipeFilters.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -598,23 +599,14 @@ function handleSearchModeChange() {
       {{ isRandomLoading ? 'Losuję...' : '🎲 Losowy przepis' }}
     </button>
 
-    <div v-if="recipes.length && !browseCategory && searchMode !== 'ingredient'" class="filters">
-      <select v-model="selectedCategory" @change="updateFilters">
-        <option value="">Wszystkie kategorie</option>
-
-        <option v-for="category in categories" :key="category" :value="category">
-          {{ category }}
-        </option>
-      </select>
-
-      <select v-model="selectedArea" @change="updateFilters">
-        <option value="">Wszystkie kuchnie</option>
-
-        <option v-for="area in areas" :key="area" :value="area">
-          {{ area }}
-        </option>
-      </select>
-    </div>
+    <RecipeFilters
+      v-if="recipes.length && !browseCategory && searchMode !== 'ingredient'"
+      v-model:selected-category="selectedCategory"
+      v-model:selected-area="selectedArea"
+      :categories="categories"
+      :areas="areas"
+      @change="updateFilters"
+    />
 
     <p v-if="isLoading" class="status-message">Ładowanie...</p>
 
@@ -792,21 +784,6 @@ form button:not(:disabled):hover {
   background: #374151;
   transform: translateY(-1px);
 }
-.filters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.filters select {
-  min-width: 180px;
-  padding: 12px 16px;
-  border: 1px solid #deded6;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #1f2937;
-  font: inherit;
-}
 
 .recipes-title {
   margin: 48px 0 24px;
@@ -913,14 +890,6 @@ form button:not(:disabled):hover {
 
   .recipes {
     grid-template-columns: 1fr;
-  }
-
-  .filters {
-    flex-direction: column;
-  }
-
-  .filters select {
-    width: 100%;
   }
 }
 </style>
