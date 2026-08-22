@@ -145,6 +145,7 @@ onMounted(async () => {
   const category = route.query.category
   const area = route.query.area
   const mode = route.query.mode
+  const browse = route.query.browse
 
   if (typeof query === 'string' && query.trim()) {
     searchQuery.value = query
@@ -165,6 +166,11 @@ onMounted(async () => {
       currentPage.value = page
     }
 
+    return
+  }
+
+  if (typeof browse === 'string' && browse.trim()) {
+    await fetchRecipesByCategory(browse)
     return
   }
 

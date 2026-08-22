@@ -103,9 +103,17 @@ onMounted(fetchRecipe)
 
       <div class="recipe-details__content">
         <div class="recipe-details__meta">
-          <span v-if="recipe.strCategory">
+          <RouterLink
+            v-if="recipe.strCategory"
+            :to="{
+              name: 'home',
+              query: {
+                browse: recipe.strCategory,
+              },
+            }"
+          >
             {{ recipe.strCategory }}
-          </span>
+          </RouterLink>
 
           <span v-if="recipe.strArea">
             {{ recipe.strArea }}
@@ -217,13 +225,22 @@ onMounted(fetchRecipe)
   gap: 8px;
 }
 
-.recipe-details__meta span {
+.recipe-details__meta span,
+.recipe-details__meta a {
   padding: 7px 11px;
   border-radius: 999px;
   background: #f1f1eb;
   color: #62625d;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.recipe-details__meta a {
+  text-decoration: none;
+}
+
+.recipe-details__meta a:hover {
+  background: #e6e6de;
 }
 
 .ingredients {
