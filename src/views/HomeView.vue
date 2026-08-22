@@ -252,7 +252,12 @@ async function fetchRecipesByCategory(category) {
 
     const data = await response.json()
 
-    recipes.value = data.meals || []
+    recipes.value = (data.meals || []).map((recipe) => {
+      return {
+        ...recipe,
+        strCategory: category,
+      }
+    })
   } catch (error) {
     errorMessage.value = error.message
     recipes.value = []
