@@ -16,7 +16,7 @@ const currentPage = ref(1)
 const recipesPerPage = 9
 const recipesSection = ref(null)
 
-async function searchRecipes() {
+async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
     recipes.value = []
     errorMessage.value = ''
@@ -36,6 +36,7 @@ async function searchRecipes() {
   router.replace({
     query: {
       q: query,
+      paged: resetPage ? undefined : route.query.paged,
     },
   })
 
@@ -55,7 +56,9 @@ async function searchRecipes() {
     const data = await response.json()
 
     recipes.value = data.meals || []
-    currentPage.value = 1
+    if (resetPage) {
+      currentPage.value = 1
+    }
   } catch (error) {
     errorMessage.value = error.message
     recipes.value = []
@@ -65,12 +68,18 @@ async function searchRecipes() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const query = route.query.q
+  const page = Number(route.query.paged) || 1
 
   if (typeof query === 'string' && query.trim()) {
     searchQuery.value = query
-    searchRecipes()
+
+    await searchRecipes(false)
+
+    if (page <= totalPages.value) {
+      currentPage.value = page
+    }
   }
 })
 
@@ -87,6 +96,13 @@ const paginatedRecipes = computed(() => {
 
 function changePage(page) {
   currentPage.value = page
+
+  router.push({
+    query: {
+      ...route.query,
+      paged: page > 1 ? page : undefined,
+    },
+  })
 
   recipesSection.value?.scrollIntoView({
     behavior: 'smooth',
