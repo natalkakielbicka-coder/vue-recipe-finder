@@ -8,6 +8,7 @@ import RecipePagination from '@/components/RecipePagination.vue'
 import RecipeSearch from '@/components/RecipeSearch.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import { useRecipeCategories } from '@/composables/useRecipeCategories'
+import { useIngredients } from '@/composables/useIngredients'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +16,10 @@ const { categoriesList, fetchCategories } = useRecipeCategories()
 
 const searchQuery = ref('')
 const searchMode = ref('name')
+const { ingredientSuggestions, fetchIngredients, matchIngredient } = useIngredients(
+  searchQuery,
+  searchMode,
+)
 const recipes = ref([])
 const isLoading = ref(false)
 const isRandomLoading = ref(false)
@@ -29,7 +34,6 @@ const selectedCategory = ref('')
 const selectedArea = ref('')
 
 const browseCategory = ref('')
-const ingredientsList = ref([])
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
 const nameSuggestions = ref([])
@@ -72,21 +76,7 @@ async function searchRecipes(resetPage = true) {
     let ingredientQuery = query
 
     if (searchMode.value === 'ingredient') {
-      const normalizedQuery = query.toLowerCase()
-
-      const exactMatch = ingredientsList.value.find(
-        (item) => item.strIngredient.toLowerCase() === normalizedQuery,
-      )
-
-      const startsWithMatches = ingredientsList.value
-        .filter((item) => item.strIngredient.toLowerCase().startsWith(normalizedQuery))
-        .sort((a, b) => a.strIngredient.length - b.strIngredient.length)
-
-      const includesMatches = ingredientsList.value
-        .filter((item) => item.strIngredient.toLowerCase().includes(normalizedQuery))
-        .sort((a, b) => a.strIngredient.length - b.strIngredient.length)
-
-      const matchedIngredient = exactMatch || startsWithMatches[0] || includesMatches[0]
+      const matchedIngredient = matchIngredient(query)
 
       if (matchedIngredient) {
         ingredientQuery = matchedIngredient.strIngredient
@@ -352,41 +342,6 @@ async function openRandomRecipe() {
     isRandomLoading.value = false
   }
 }
-
-async function fetchIngredients() {
-  try {
-    const response = await fetch('https://www.themealdb.com/api/json/v1/1/list.php?i=list')
-
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać składników.')
-    }
-
-    const data = await response.json()
-
-    ingredientsList.value = data.meals || []
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const ingredientSuggestions = computed(() => {
-  if (searchMode.value !== 'ingredient' || searchQuery.value.trim().length < 2) {
-    return []
-  }
-
-  const query = searchQuery.value.trim().toLowerCase()
-
-  return ingredientsList.value
-    .filter((item) => item.strIngredient.toLowerCase().includes(query))
-    .sort((a, b) => {
-      const aStarts = a.strIngredient.toLowerCase().startsWith(query)
-
-      const bStarts = b.strIngredient.toLowerCase().startsWith(query)
-
-      return Number(bStarts) - Number(aStarts)
-    })
-    .slice(0, 6)
-})
 
 function handleSuggestionKeydown(event) {
   const suggestions = currentSuggestions.value
