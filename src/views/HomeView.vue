@@ -437,6 +437,13 @@ function handleSearchInput() {
   showIngredientSuggestions.value = true
   activeSuggestionIndex.value = -1
 }
+
+function closeSuggestions() {
+  setTimeout(() => {
+    showIngredientSuggestions.value = false
+    activeSuggestionIndex.value = -1
+  }, 100)
+}
 </script>
 
 <template>
@@ -477,6 +484,7 @@ function handleSearchInput() {
           :placeholder="searchMode === 'ingredient' ? 'Wpisz składnik...' : 'Wpisz nazwę dania...'"
           @input="handleSearchInput"
           @keydown="handleSuggestionKeydown"
+          @blur="closeSuggestions"
         />
 
         <div
