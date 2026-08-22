@@ -19,11 +19,16 @@ const recipesSection = ref(null)
 const selectedCategory = ref('')
 const selectedArea = ref('')
 
+const popularCategories = ['Dessert', 'Chicken', 'Seafood', 'Vegetarian', 'Pasta']
+
+const browseCategory = ref('')
+
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
     recipes.value = []
     errorMessage.value = ''
     hasSearched.value = false
+    browseCategory.value = ''
 
     router.replace({
       query: {},
@@ -209,6 +214,7 @@ async function resetSearch() {
   currentPage.value = 1
   hasSearched.value = false
   errorMessage.value = ''
+  browseCategory.value = ''
 
   router.replace({
     query: {},
@@ -216,12 +222,60 @@ async function resetSearch() {
 
   await fetchInitialRecipes()
 }
+
+async function fetchRecipesByCategory(category) {
+  isLoading.value = true
+  errorMessage.value = ''
+  hasSearched.value = false
+  browseCategory.value = category
+  currentPage.value = 1
+  selectedCategory.value = ''
+  selectedArea.value = ''
+  searchQuery.value = ''
+
+  router.replace({
+    query: {
+      browse: category,
+    },
+  })
+
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
+    )
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać kategorii.')
+    }
+
+    const data = await response.json()
+
+    recipes.value = data.meals || []
+  } catch (error) {
+    errorMessage.value = error.message
+    recipes.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
   <section class="home">
     <h1>Recipe Finder</h1>
     <p>Znajdź pomysł na swój następny posiłek.</p>
+
+    <div class="quick-categories">
+      <button
+        v-for="category in popularCategories"
+        :key="category"
+        type="button"
+        :class="{ active: browseCategory === category }"
+        @click="fetchRecipesByCategory(category)"
+      >
+        {{ category }}
+      </button>
+    </div>
 
     <form @submit.prevent="searchRecipes">
       <input v-model="searchQuery" type="text" placeholder="Wpisz nazwę dania..." />
@@ -260,7 +314,13 @@ async function resetSearch() {
     <p v-else-if="hasSearched && recipes.length === 0" class="status-message">Brak wyników.</p>
 
     <h2 v-if="recipes.length" class="recipes-title">
-      {{ hasSearched ? 'Wyniki wyszukiwania' : 'Odkrywaj przepisy' }}
+      {{
+        hasSearched
+          ? 'Wyniki wyszukiwania'
+          : browseCategory
+            ? `Kategoria: ${browseCategory}`
+            : 'Odkrywaj przepisy'
+      }}
     </h2>
 
     <div class="recipes" ref="recipesSection">
@@ -446,6 +506,28 @@ button:not(:disabled):hover {
 .button-secondary:hover {
   background: #f1f1eb;
   color: #fff;
+}
+
+.quick-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.quick-categories button {
+  padding: 10px 16px;
+  border: 1px solid #deded6;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.quick-categories button:hover,
+.quick-categories button.active {
+  border-color: #1f2937;
+  background: #1f2937;
+  color: #ffffff;
 }
 
 @media (max-width: 1023px) {
