@@ -9,6 +9,7 @@ const router = useRouter()
 const searchQuery = ref('')
 const recipes = ref([])
 const isLoading = ref(false)
+const isRandomLoading = ref(false)
 const errorMessage = ref('')
 const hasSearched = ref(false)
 
@@ -286,6 +287,36 @@ async function fetchCategories() {
     console.error(error)
   }
 }
+
+async function openRandomRecipe() {
+  isRandomLoading.value = true
+
+  try {
+    const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php')
+
+    if (!response.ok) {
+      throw new Error('Nie udało się wylosować przepisu.')
+    }
+
+    const data = await response.json()
+    const randomRecipe = data.meals?.[0]
+
+    if (!randomRecipe) {
+      return
+    }
+
+    router.push({
+      name: 'recipe',
+      params: {
+        id: randomRecipe.idMeal,
+      },
+    })
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    isRandomLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -326,6 +357,15 @@ async function fetchCategories() {
         Wyczyść
       </button>
     </form>
+
+    <button
+      type="button"
+      class="random-recipe"
+      :disabled="isRandomLoading"
+      @click="openRandomRecipe"
+    >
+      {{ isRandomLoading ? 'Losuję...' : '🎲 Losowy przepis' }}
+    </button>
 
     <div v-if="recipes.length && !browseCategory" class="filters">
       <select v-model="selectedCategory" @change="updateFilters">
@@ -590,6 +630,17 @@ form button:not(:disabled):hover {
   border-color: #1f2937;
   background: #f1f1eb;
   color: #1f2937;
+}
+
+.random-recipe {
+  margin-bottom: 32px;
+  border: 1px solid #deded6;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.random-recipe:hover:not(:disabled) {
+  background: #f1f1eb;
 }
 
 @media (max-width: 1023px) {
