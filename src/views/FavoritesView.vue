@@ -2,7 +2,15 @@
 import RecipeCard from '@/components/RecipeCard.vue'
 import { useFavorites } from '@/composables/useFavorites'
 
-const { favoriteRecipes } = useFavorites()
+const { favoriteRecipes, clearFavorites } = useFavorites()
+
+function confirmClearFavorites() {
+  const confirmed = window.confirm('Czy na pewno chcesz usunąć wszystkie ulubione przepisy?')
+
+  if (confirmed) {
+    clearFavorites()
+  }
+}
 </script>
 
 <template>
@@ -11,7 +19,16 @@ const { favoriteRecipes } = useFavorites()
 
     <p v-if="favoriteRecipes.length === 0">Nie masz jeszcze żadnych ulubionych przepisów.</p>
 
-    <div v-else class="recipes">
+    <button
+      v-if="favoriteRecipes.length"
+      type="button"
+      class="clear-favorites"
+      @click="confirmClearFavorites"
+    >
+      Usuń wszystkie ulubione
+    </button>
+
+    <div v-if="favoriteRecipes.length" class="recipes">
       <RecipeCard v-for="recipe in favoriteRecipes" :key="recipe.idMeal" :recipe="recipe" />
     </div>
   </section>
@@ -43,6 +60,17 @@ const { favoriteRecipes } = useFavorites()
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
+}
+
+.clear-favorites {
+  margin-bottom: 32px;
+  border: 1px solid #deded6;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.clear-favorites:hover {
+  background: #f1f1eb;
 }
 
 @media (max-width: 900px) {

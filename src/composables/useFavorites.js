@@ -31,9 +31,14 @@ export function useFavorites() {
     })
   }
 
+  function clearFavorites() {
+    favoriteRecipes.value = []
+  }
+
   return {
     favoriteRecipes,
     isFavorite,
     toggleFavorite,
+    clearFavorites,
   }
 }
