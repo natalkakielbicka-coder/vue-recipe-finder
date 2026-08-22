@@ -24,6 +24,7 @@ const selectedArea = ref('')
 const browseCategory = ref('')
 const categoriesList = ref([])
 const ingredientsList = ref([])
+const showIngredientSuggestions = ref(false)
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -368,6 +369,30 @@ async function fetchIngredients() {
     console.error(error)
   }
 }
+
+const ingredientSuggestions = computed(() => {
+  if (searchMode.value !== 'ingredient' || searchQuery.value.trim().length < 2) {
+    return []
+  }
+
+  const query = searchQuery.value.trim().toLowerCase()
+
+  return ingredientsList.value
+    .filter((item) => item.strIngredient.toLowerCase().includes(query))
+    .sort((a, b) => {
+      const aStarts = a.strIngredient.toLowerCase().startsWith(query)
+
+      const bStarts = b.strIngredient.toLowerCase().startsWith(query)
+
+      return Number(bStarts) - Number(aStarts)
+    })
+    .slice(0, 6)
+})
+
+function selectIngredient(ingredient) {
+  searchQuery.value = ingredient
+  showIngredientSuggestions.value = false
+}
 </script>
 
 <template>
@@ -401,7 +426,29 @@ async function fetchIngredients() {
         <option value="ingredient">Po składniku</option>
       </select>
 
-      <input v-model="searchQuery" type="text" placeholder="Wpisz nazwę dania..." />
+      <div class="search-input-wrapper">
+        <input
+          v-model="searchQuery"
+          type="text"
+          :placeholder="searchMode === 'ingredient' ? 'Wpisz składnik...' : 'Wpisz nazwę dania...'"
+          @input="showIngredientSuggestions = true"
+        />
+
+        <div
+          v-if="showIngredientSuggestions && ingredientSuggestions.length"
+          class="search-suggestions"
+        >
+          <button
+            v-for="ingredient in ingredientSuggestions"
+            :key="ingredient.idIngredient"
+            type="button"
+            class="search-suggestion"
+            @click="selectIngredient(ingredient.strIngredient)"
+          >
+            {{ ingredient.strIngredient }}
+          </button>
+        </div>
+      </div>
 
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
 
@@ -707,6 +754,51 @@ form button:not(:disabled):hover {
   background: #ffffff;
   color: #1f2937;
   font: inherit;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+}
+
+.search-suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+
+  width: 100%;
+  overflow: hidden;
+
+  border: 1px solid #deded6;
+  border-radius: 12px;
+  background: #ffffff;
+
+  box-shadow: 0 14px 30px rgba(31, 41, 55, 0.12);
+}
+
+.search-suggestions .search-suggestion {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+
+  border-radius: 0;
+  background: #ffffff;
+  color: #1f2937;
+
+  text-align: left;
+  font-weight: 500;
+}
+
+.search-suggestions .search-suggestion:hover {
+  background: #f1f1eb;
+  color: #1f2937;
+  transform: none;
 }
 
 @media (max-width: 1023px) {
