@@ -25,6 +25,7 @@ const browseCategory = ref('')
 const categoriesList = ref([])
 const ingredientsList = ref([])
 const showIngredientSuggestions = ref(false)
+const activeSuggestionIndex = ref(-1)
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -392,6 +393,49 @@ const ingredientSuggestions = computed(() => {
 function selectIngredient(ingredient) {
   searchQuery.value = ingredient
   showIngredientSuggestions.value = false
+  activeSuggestionIndex.value = -1
+}
+
+function handleSuggestionKeydown(event) {
+  if (!showIngredientSuggestions.value || !ingredientSuggestions.value.length) {
+    return
+  }
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+
+    activeSuggestionIndex.value =
+      activeSuggestionIndex.value < ingredientSuggestions.value.length - 1
+        ? activeSuggestionIndex.value + 1
+        : 0
+  }
+
+  if (event.key === 'ArrowUp') {
+    event.preventDefault()
+
+    activeSuggestionIndex.value =
+      activeSuggestionIndex.value > 0
+        ? activeSuggestionIndex.value - 1
+        : ingredientSuggestions.value.length - 1
+  }
+
+  if (event.key === 'Enter' && activeSuggestionIndex.value >= 0) {
+    event.preventDefault()
+
+    const ingredient = ingredientSuggestions.value[activeSuggestionIndex.value]
+
+    selectIngredient(ingredient.strIngredient)
+  }
+
+  if (event.key === 'Escape') {
+    showIngredientSuggestions.value = false
+    activeSuggestionIndex.value = -1
+  }
+}
+
+function handleSearchInput() {
+  showIngredientSuggestions.value = true
+  activeSuggestionIndex.value = -1
 }
 </script>
 
@@ -431,7 +475,8 @@ function selectIngredient(ingredient) {
           v-model="searchQuery"
           type="text"
           :placeholder="searchMode === 'ingredient' ? 'Wpisz składnik...' : 'Wpisz nazwę dania...'"
-          @input="showIngredientSuggestions = true"
+          @input="handleSearchInput"
+          @keydown="handleSuggestionKeydown"
         />
 
         <div
@@ -439,10 +484,13 @@ function selectIngredient(ingredient) {
           class="search-suggestions"
         >
           <button
-            v-for="ingredient in ingredientSuggestions"
+            v-for="(ingredient, index) in ingredientSuggestions"
             :key="ingredient.idIngredient"
             type="button"
             class="search-suggestion"
+            :class="{
+              active: activeSuggestionIndex === index,
+            }"
             @click="selectIngredient(ingredient.strIngredient)"
           >
             {{ ingredient.strIngredient }}
@@ -799,6 +847,11 @@ form button:not(:disabled):hover {
   background: #f1f1eb;
   color: #1f2937;
   transform: none;
+}
+
+.search-suggestion.active {
+  background: #f1f1eb;
+  color: #1f2937;
 }
 
 @media (max-width: 1023px) {
