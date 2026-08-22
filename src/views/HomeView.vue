@@ -513,6 +513,14 @@ async function selectSuggestion(value) {
 
   await searchRecipes()
 }
+
+function handleSearchModeChange() {
+  showIngredientSuggestions.value = false
+  nameSuggestions.value = []
+  activeSuggestionIndex.value = -1
+
+  clearTimeout(nameSuggestionsTimeout)
+}
 </script>
 
 <template>
@@ -540,7 +548,7 @@ async function selectSuggestion(value) {
     </div>
 
     <form @submit.prevent="searchRecipes">
-      <select v-model="searchMode" class="search-mode">
+      <select v-model="searchMode" class="search-mode" @change="handleSearchModeChange">
         <option value="name">Po nazwie</option>
 
         <option value="ingredient">Po składniku</option>
