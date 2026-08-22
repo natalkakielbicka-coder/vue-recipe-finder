@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '@/components/RecipeCard.vue'
+import CategoryBrowser from '@/components/CategoryBrowser.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -534,24 +535,11 @@ function handleSearchModeChange() {
     <h1>Recipe Finder</h1>
     <p>Znajdź pomysł na swój następny posiłek.</p>
 
-    <div class="quick-categories">
-      <button
-        v-for="category in categoriesList"
-        :key="category.idCategory"
-        type="button"
-        class="category-card"
-        :class="{
-          active: browseCategory === category.strCategory,
-        }"
-        @click="fetchRecipesByCategory(category.strCategory)"
-      >
-        <img :src="category.strCategoryThumb" :alt="category.strCategory" />
-
-        <span>
-          {{ category.strCategory }}
-        </span>
-      </button>
-    </div>
+    <CategoryBrowser
+      :categories="categoriesList"
+      :active-category="browseCategory"
+      @select="fetchRecipesByCategory"
+    />
 
     <form @submit.prevent="searchRecipes">
       <select v-model="searchMode" class="search-mode" @change="handleSearchModeChange">
@@ -837,46 +825,6 @@ form button:not(:disabled):hover {
   color: #fff;
 }
 
-.quick-categories {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  margin-bottom: 48px;
-}
-
-.category-card {
-  position: relative;
-
-  overflow: hidden;
-  min-width: 0;
-  padding: 16px;
-
-  border: 1px solid #deded6;
-  border-radius: 16px;
-
-  background: #ffffff;
-  color: #1f2937;
-}
-
-.category-card img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
-  margin-bottom: 10px;
-}
-
-.category-card span {
-  display: block;
-  font-weight: 700;
-}
-
-.category-card:hover,
-.category-card.active {
-  border-color: #1f2937;
-  background: #f1f1eb;
-  color: #1f2937;
-}
-
 .random-recipe {
   margin-bottom: 32px;
   border: 1px solid #deded6;
@@ -951,9 +899,6 @@ form button:not(:disabled):hover {
   .recipes {
     grid-template-columns: repeat(2, 1fr);
   }
-  .quick-categories {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 @media (max-width: 767px) {
@@ -976,10 +921,6 @@ form button:not(:disabled):hover {
 
   .filters select {
     width: 100%;
-  }
-
-  .quick-categories {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
