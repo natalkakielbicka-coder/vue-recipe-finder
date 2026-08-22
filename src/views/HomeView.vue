@@ -136,6 +136,25 @@ const paginatedRecipes = computed(() => {
   return filteredRecipes.value.slice(start, end)
 })
 
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, index) => index + 1)
+  }
+
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', total]
+  }
+
+  if (current >= total - 3) {
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
+  }
+
+  return [1, '...', current - 1, current, current + 1, '...', total]
+})
+
 function changePage(page) {
   currentPage.value = page
 
@@ -237,15 +256,18 @@ function updateFilters() {
     <div v-if="totalPages > 1" class="pagination">
       <button type="button" :disabled="currentPage === 1" @click="currentPage--">Poprzednia</button>
 
-      <button
-        v-for="page in totalPages"
-        :key="page"
-        type="button"
-        :class="{ active: currentPage === page }"
-        @click="changePage(page)"
-      >
-        {{ page }}
-      </button>
+      <template v-for="page in visiblePages" :key="page">
+        <span v-if="page === '...'" class="pagination__dots"> ... </span>
+
+        <button
+          v-else
+          type="button"
+          :class="{ active: currentPage === page }"
+          @click="changePage(page)"
+        >
+          {{ page }}
+        </button>
+      </template>
 
       <button
         type="button"
