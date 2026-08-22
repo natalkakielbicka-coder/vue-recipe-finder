@@ -604,7 +604,7 @@ function handleSearchModeChange() {
       {{ isRandomLoading ? 'Losuję...' : '🎲 Losowy przepis' }}
     </button>
 
-    <div v-if="recipes.length && !browseCategory" class="filters">
+    <div v-if="recipes.length && !browseCategory && searchMode !== 'ingredient'" class="filters">
       <select v-model="selectedCategory" @change="updateFilters">
         <option value="">Wszystkie kategorie</option>
 
@@ -637,7 +637,9 @@ function handleSearchModeChange() {
     <h2 v-if="recipes.length" class="recipes-title">
       {{
         hasSearched
-          ? 'Wyniki wyszukiwania'
+          ? searchMode === 'ingredient'
+            ? `Przepisy ze składnikiem: ${searchQuery}`
+            : `Wyniki dla: ${searchQuery}`
           : browseCategory
             ? `Kategoria: ${browseCategory}`
             : 'Odkrywaj przepisy'
