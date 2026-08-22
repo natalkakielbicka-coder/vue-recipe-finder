@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import RecipeCard from '@/components/RecipeCard.vue'
 import CategoryBrowser from '@/components/CategoryBrowser.vue'
 import RecipeFilters from '@/components/RecipeFilters.vue'
 import RecipePagination from '@/components/RecipePagination.vue'
@@ -12,6 +11,7 @@ import { useIngredients } from '@/composables/useIngredients'
 import { useNameSuggestions } from '@/composables/useNameSuggestions'
 import { useRecipeSearch } from '@/composables/useRecipeSearch'
 import { usePagination } from '@/composables/usePagination'
+import { useRecipeFilters } from '@/composables/useRecipeFilters'
 
 const route = useRoute()
 const router = useRouter()
@@ -36,23 +36,27 @@ const {
   fetchInitialRecipes,
   fetchCategoryRecipes,
 } = useRecipeSearch()
+
+const { selectedCategory, selectedArea, categories, areas, filteredRecipes, resetFilters } =
+  useRecipeFilters(recipes)
+
 const isRandomLoading = ref(false)
 
 const recipesSection = ref(null)
-
-const selectedCategory = ref('')
-const selectedArea = ref('')
 
 const browseCategory = ref('')
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
 
-async function searchRecipes(resetPage = true) {
+async function searchRecipes(shouldResetPage = true) {
   if (!searchQuery.value.trim()) {
     recipes.value = []
     errorMessage.value = ''
     hasSearched.value = false
     browseCategory.value = ''
+
+    resetFilters()
+    resetPage()
 
     router.replace({
       query: {},
@@ -70,9 +74,9 @@ async function searchRecipes(resetPage = true) {
     query: {
       q: query,
       mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
-      category: resetPage ? undefined : route.query.category,
-      area: resetPage ? undefined : route.query.area,
-      paged: resetPage ? undefined : route.query.paged,
+      category: shouldResetPage ? undefined : route.query.category,
+      area: shouldResetPage ? undefined : route.query.area,
+      paged: shouldResetPage ? undefined : route.query.paged,
     },
   })
 
@@ -93,10 +97,9 @@ async function searchRecipes(resetPage = true) {
 
   await fetchRecipes(url)
 
-  if (resetPage) {
+  if (shouldResetPage) {
     resetPage()
-    selectedCategory.value = ''
-    selectedArea.value = ''
+    resetFilters()
   }
 }
 
@@ -157,24 +160,6 @@ function changePage(page) {
   })
 }
 
-const categories = computed(() => {
-  return [...new Set(recipes.value.map((recipe) => recipe.strCategory).filter(Boolean))].sort()
-})
-
-const areas = computed(() => {
-  return [...new Set(recipes.value.map((recipe) => recipe.strArea).filter(Boolean))].sort()
-})
-
-const filteredRecipes = computed(() => {
-  return recipes.value.filter((recipe) => {
-    const matchesCategory = !selectedCategory.value || recipe.strCategory === selectedCategory.value
-
-    const matchesArea = !selectedArea.value || recipe.strArea === selectedArea.value
-
-    return matchesCategory && matchesArea
-  })
-})
-
 const {
   currentPage,
   totalPages,
@@ -200,8 +185,7 @@ function updateFilters() {
 
 async function resetSearch() {
   searchQuery.value = ''
-  selectedCategory.value = ''
-  selectedArea.value = ''
+  resetFilters()
   resetPage()
   hasSearched.value = false
   errorMessage.value = ''
@@ -214,23 +198,26 @@ async function resetSearch() {
   await fetchInitialRecipes()
 }
 
-async function fetchRecipesByCategory(category) {
-  if (browseCategory.value === category) {
+async function fetchRecipesByCategory(category, updateUrl = true) {
+  if (browseCategory.value === category && updateUrl) {
     await resetSearch()
     return
   }
 
   browseCategory.value = category
+
   resetPage()
-  selectedCategory.value = ''
-  selectedArea.value = ''
+  resetFilters()
+
   searchQuery.value = ''
 
-  router.replace({
-    query: {
-      browse: category,
-    },
-  })
+  if (updateUrl) {
+    router.replace({
+      query: {
+        browse: category,
+      },
+    })
+  }
 
   await fetchCategoryRecipes(category)
 }
@@ -265,7 +252,7 @@ async function openRandomRecipe() {
   }
 }
 
-function handleSuggestionKeydown(event) {
+async function handleSuggestionKeydown(event) {
   const suggestions = currentSuggestions.value
 
   const suggestionsAreVisible =
@@ -296,12 +283,12 @@ function handleSuggestionKeydown(event) {
 
     const suggestion = suggestions[activeSuggestionIndex.value]
 
-    selectSuggestion(suggestion.label)
+    await selectSuggestion(suggestion.label)
   }
 
   if (event.key === 'Escape') {
     showIngredientSuggestions.value = false
-    nameSuggestions.value = []
+    clearNameSuggestions()
     activeSuggestionIndex.value = -1
   }
 }
