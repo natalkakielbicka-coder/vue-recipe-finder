@@ -504,12 +504,14 @@ const currentSuggestions = computed(() => {
   }))
 })
 
-function selectSuggestion(value) {
+async function selectSuggestion(value) {
   searchQuery.value = value
 
   showIngredientSuggestions.value = false
   nameSuggestions.value = []
   activeSuggestionIndex.value = -1
+
+  await searchRecipes()
 }
 </script>
 
