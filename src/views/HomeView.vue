@@ -19,9 +19,8 @@ const recipesSection = ref(null)
 const selectedCategory = ref('')
 const selectedArea = ref('')
 
-const popularCategories = ['Dessert', 'Chicken', 'Seafood', 'Vegetarian', 'Pasta']
-
 const browseCategory = ref('')
+const categoriesList = ref([])
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -102,6 +101,8 @@ async function fetchInitialRecipes() {
 }
 
 onMounted(async () => {
+  await fetchCategories()
+
   const query = route.query.q
   const page = Number(route.query.paged) || 1
   const category = route.query.category
@@ -258,6 +259,22 @@ async function fetchRecipesByCategory(category) {
     isLoading.value = false
   }
 }
+
+async function fetchCategories() {
+  try {
+    const response = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać kategorii.')
+    }
+
+    const data = await response.json()
+
+    categoriesList.value = data.categories || []
+  } catch (error) {
+    console.error(error)
+  }
+}
 </script>
 
 <template>
@@ -267,13 +284,20 @@ async function fetchRecipesByCategory(category) {
 
     <div class="quick-categories">
       <button
-        v-for="category in popularCategories"
-        :key="category"
+        v-for="category in categoriesList"
+        :key="category.idCategory"
         type="button"
-        :class="{ active: browseCategory === category }"
-        @click="fetchRecipesByCategory(category)"
+        class="category-card"
+        :class="{
+          active: browseCategory === category.strCategory,
+        }"
+        @click="fetchRecipesByCategory(category.strCategory)"
       >
-        {{ category }}
+        <img :src="category.strCategoryThumb" :alt="category.strCategory" />
+
+        <span>
+          {{ category.strCategory }}
+        </span>
       </button>
     </div>
 
@@ -471,7 +495,7 @@ button {
   cursor: not-allowed;
 }
 
-button:not(:disabled):hover {
+form button:not(:disabled):hover {
   background: #374151;
   transform: translateY(-1px);
 }
@@ -509,30 +533,51 @@ button:not(:disabled):hover {
 }
 
 .quick-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 48px;
 }
 
-.quick-categories button {
-  padding: 10px 16px;
+.category-card {
+  position: relative;
+
+  overflow: hidden;
+  min-width: 0;
+  padding: 16px;
+
   border: 1px solid #deded6;
-  border-radius: 999px;
+  border-radius: 16px;
+
   background: #ffffff;
   color: #1f2937;
 }
 
-.quick-categories button:hover,
-.quick-categories button.active {
+.category-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+.category-card span {
+  display: block;
+  font-weight: 700;
+}
+
+.category-card:hover,
+.category-card.active {
   border-color: #1f2937;
-  background: #1f2937;
-  color: #ffffff;
+  background: #f1f1eb;
+  color: #1f2937;
 }
 
 @media (max-width: 1023px) {
   .recipes {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .quick-categories {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -556,6 +601,10 @@ button:not(:disabled):hover {
 
   .filters select {
     width: 100%;
+  }
+
+  .quick-categories {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
