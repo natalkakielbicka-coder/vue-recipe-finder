@@ -1,8 +1,11 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useFavorites } from '@/composables/useFavorites'
 
 const route = useRoute()
+
+const { isFavorite, toggleFavorite } = useFavorites()
 
 const recipe = ref(null)
 const isLoading = ref(false)
@@ -89,7 +92,19 @@ onMounted(fetchRecipe)
           </span>
         </div>
 
-        <h1>{{ recipe.strMeal }}</h1>
+        <div class="recipe-details__heading">
+          <h1>{{ recipe.strMeal }}</h1>
+
+          <button
+            type="button"
+            class="favorite-button"
+            :class="{ active: isFavorite(recipe.idMeal) }"
+            :aria-label="isFavorite(recipe.idMeal) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'"
+            @click="toggleFavorite(recipe)"
+          >
+            {{ isFavorite(recipe.idMeal) ? '♥' : '♡' }}
+          </button>
+        </div>
 
         <h2>Składniki</h2>
 
@@ -140,13 +155,6 @@ onMounted(fetchRecipe)
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 24px;
-}
-
-.recipe-details__content h1 {
-  margin: 16px 0 40px;
-  font-size: clamp(2.4rem, 5vw, 4.5rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
 }
 
 .recipe-details__content h2,
@@ -214,6 +222,48 @@ onMounted(fetchRecipe)
   border-color: #fecaca;
   background: #fef2f2;
   color: #991b1b;
+}
+
+.recipe-details__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 16px 0 40px;
+}
+
+.recipe-details__heading h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.favorite-button {
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  width: 50px;
+  height: 50px;
+  padding: 0;
+
+  border: 1px solid #deded6;
+  border-radius: 50%;
+
+  background: #ffffff;
+  color: #1f2937;
+
+  font-size: 1.7rem;
+}
+
+.favorite-button:hover {
+  transform: scale(1.05);
+}
+
+.favorite-button.active {
+  color: #b42318;
 }
 
 @media (max-width: 800px) {
