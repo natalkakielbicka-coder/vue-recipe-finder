@@ -7,9 +7,11 @@ import RecipeFilters from '@/components/RecipeFilters.vue'
 import RecipePagination from '@/components/RecipePagination.vue'
 import RecipeSearch from '@/components/RecipeSearch.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
+import { useRecipeCategories } from '@/composables/useRecipeCategories'
 
 const route = useRoute()
 const router = useRouter()
+const { categoriesList, fetchCategories } = useRecipeCategories()
 
 const searchQuery = ref('')
 const searchMode = ref('name')
@@ -27,7 +29,6 @@ const selectedCategory = ref('')
 const selectedArea = ref('')
 
 const browseCategory = ref('')
-const categoriesList = ref([])
 const ingredientsList = ref([])
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
@@ -319,22 +320,6 @@ async function fetchRecipesByCategory(category) {
     recipes.value = []
   } finally {
     isLoading.value = false
-  }
-}
-
-async function fetchCategories() {
-  try {
-    const response = await fetch('https://www.themealdb.com/api/json/v1/1/categories.php')
-
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać kategorii.')
-    }
-
-    const data = await response.json()
-
-    categoriesList.value = data.categories || []
-  } catch (error) {
-    console.error(error)
   }
 }
 
