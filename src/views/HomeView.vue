@@ -201,6 +201,21 @@ function updateFilters() {
     },
   })
 }
+
+async function resetSearch() {
+  searchQuery.value = ''
+  selectedCategory.value = ''
+  selectedArea.value = ''
+  currentPage.value = 1
+  hasSearched.value = false
+  errorMessage.value = ''
+
+  router.replace({
+    query: {},
+  })
+
+  await fetchInitialRecipes()
+}
 </script>
 
 <template>
@@ -212,6 +227,10 @@ function updateFilters() {
       <input v-model="searchQuery" type="text" placeholder="Wpisz nazwę dania..." />
 
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
+
+      <button v-if="hasSearched" type="button" class="button-secondary" @click="resetSearch">
+        Wyczyść
+      </button>
     </form>
 
     <div v-if="recipes.length" class="filters">
@@ -254,7 +273,9 @@ function updateFilters() {
     </div>
 
     <div v-if="totalPages > 1" class="pagination">
-      <button type="button" :disabled="currentPage === 1" @click="currentPage--">Poprzednia</button>
+      <button type="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
+        Poprzednia
+      </button>
 
       <template v-for="page in visiblePages" :key="page">
         <span v-if="page === '...'" class="pagination__dots"> ... </span>
@@ -277,8 +298,6 @@ function updateFilters() {
         Następna
       </button>
     </div>
-
-    <p>Szukasz: {{ searchQuery }}</p>
   </section>
 </template>
 
@@ -416,6 +435,17 @@ button:not(:disabled):hover {
   margin: 48px 0 24px;
   font-size: 1.8rem;
   letter-spacing: -0.03em;
+}
+
+.button-secondary {
+  border: 1px solid #deded6;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.button-secondary:hover {
+  background: #f1f1eb;
+  color: #fff;
 }
 
 @media (max-width: 1023px) {
