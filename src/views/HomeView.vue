@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '@/components/RecipeCard.vue'
 
@@ -11,6 +11,10 @@ const recipes = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
 const hasSearched = ref(false)
+
+const currentPage = ref(1)
+const recipesPerPage = 9
+const recipesSection = ref(null)
 
 async function searchRecipes() {
   if (!searchQuery.value.trim()) {
@@ -51,6 +55,7 @@ async function searchRecipes() {
     const data = await response.json()
 
     recipes.value = data.meals || []
+    currentPage.value = 1
   } catch (error) {
     errorMessage.value = error.message
     recipes.value = []
@@ -68,6 +73,26 @@ onMounted(() => {
     searchRecipes()
   }
 })
+
+const totalPages = computed(() => {
+  return Math.ceil(recipes.value.length / recipesPerPage)
+})
+
+const paginatedRecipes = computed(() => {
+  const start = (currentPage.value - 1) * recipesPerPage
+  const end = start + recipesPerPage
+
+  return recipes.value.slice(start, end)
+})
+
+function changePage(page) {
+  currentPage.value = page
+
+  recipesSection.value?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
+}
 </script>
 
 <template>
@@ -89,13 +114,35 @@ onMounted(() => {
 
     <p v-else-if="hasSearched && recipes.length === 0" class="status-message">Brak wyników.</p>
 
-    <div class="recipes">
+    <div class="recipes" ref="recipesSection">
       <RecipeCard
-        v-for="recipe in recipes"
+        v-for="recipe in paginatedRecipes"
         :key="recipe.idMeal"
         :recipe="recipe"
         :search-query="searchQuery"
       />
+    </div>
+
+    <div v-if="totalPages > 1" class="pagination">
+      <button type="button" :disabled="currentPage === 1" @click="currentPage--">Poprzednia</button>
+
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        type="button"
+        :class="{ active: currentPage === page }"
+        @click="changePage(page)"
+      >
+        {{ page }}
+      </button>
+
+      <button
+        type="button"
+        :disabled="currentPage === totalPages"
+        @click="changePage(currentPage + 1)"
+      >
+        Następna
+      </button>
     </div>
 
     <p>Szukasz: {{ searchQuery }}</p>
@@ -181,6 +228,35 @@ button {
   transition:
     background-color 0.2s ease,
     transform 0.2s ease;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 48px;
+}
+
+.pagination button {
+  min-width: 44px;
+  padding: 10px 14px;
+  border: 1px solid #deded6;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.pagination button:hover:not(:disabled),
+.pagination button.active {
+  border-color: #1f2937;
+  background: #1f2937;
+  color: #ffffff;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 button:not(:disabled):hover {
