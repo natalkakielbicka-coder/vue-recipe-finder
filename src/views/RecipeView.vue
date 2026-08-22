@@ -1,13 +1,15 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useFavorites } from '@/composables/useFavorites'
+import RecipeCard from '@/components/RecipeCard.vue'
 
 const route = useRoute()
 
 const { isFavorite, toggleFavorite } = useFavorites()
 
 const recipe = ref(null)
+const similarRecipes = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
 
@@ -49,6 +51,10 @@ async function fetchRecipe() {
     const data = await response.json()
 
     recipe.value = data.meals?.[0] || null
+
+    if (recipe.value) {
+      await fetchSimilarRecipes(recipe.value.strCategory)
+    }
   } catch (error) {
     errorMessage.value = error.message
   } finally {
@@ -76,7 +82,40 @@ const youtubeEmbedUrl = computed(() => {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : ''
 })
 
+async function fetchSimilarRecipes(category) {
+  if (!category) {
+    similarRecipes.value = []
+    return
+  }
+
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
+    )
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać podobnych przepisów.')
+    }
+
+    const data = await response.json()
+
+    similarRecipes.value = (data.meals || [])
+      .filter((item) => item.idMeal !== recipe.value.idMeal)
+      .slice(0, 3)
+  } catch (error) {
+    console.error(error)
+    similarRecipes.value = []
+  }
+}
+
 onMounted(fetchRecipe)
+
+watch(
+  () => route.params.id,
+  async () => {
+    await fetchRecipe()
+  },
+)
 </script>
 
 <template>
@@ -175,6 +214,18 @@ onMounted(fetchRecipe)
             allowfullscreen
           ></iframe>
         </div>
+
+        <section v-if="similarRecipes.length" class="similar-recipes">
+          <h2>Podobne przepisy</h2>
+
+          <div class="similar-recipes__grid">
+            <RecipeCard
+              v-for="similarRecipe in similarRecipes"
+              :key="similarRecipe.idMeal"
+              :recipe="similarRecipe"
+            />
+          </div>
+        </section>
       </div>
     </div>
 
@@ -369,7 +420,29 @@ onMounted(fetchRecipe)
   border: 0;
 }
 
-@media (max-width: 800px) {
+.similar-recipes {
+  margin-top: 64px;
+}
+
+.similar-recipes h2 {
+  margin-bottom: 24px;
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
+}
+
+.similar-recipes__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1023px) {
+  .similar-recipes__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
   .recipe-view {
     width: min(100% - 28px, 1200px);
     padding-top: 32px;
@@ -387,6 +460,9 @@ onMounted(fetchRecipe)
   .recipe-details__instructions {
     grid-column: auto;
     padding-top: 8px;
+  }
+  .similar-recipes__grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
