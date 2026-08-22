@@ -5,6 +5,7 @@ import RecipeCard from '@/components/RecipeCard.vue'
 import CategoryBrowser from '@/components/CategoryBrowser.vue'
 import RecipeFilters from '@/components/RecipeFilters.vue'
 import RecipePagination from '@/components/RecipePagination.vue'
+import RecipeSearch from '@/components/RecipeSearch.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -530,6 +531,14 @@ function handleSearchModeChange() {
 
   clearTimeout(nameSuggestionsTimeout)
 }
+
+const showSearchSuggestions = computed(() => {
+  if (searchMode.value === 'ingredient') {
+    return showIngredientSuggestions.value
+  }
+
+  return nameSuggestions.value.length > 0
+})
 </script>
 
 <template>
@@ -543,53 +552,22 @@ function handleSearchModeChange() {
       @select="fetchRecipesByCategory"
     />
 
-    <form @submit.prevent="searchRecipes">
-      <select v-model="searchMode" class="search-mode" @change="handleSearchModeChange">
-        <option value="name">Po nazwie</option>
-
-        <option value="ingredient">Po składniku</option>
-      </select>
-
-      <div class="search-input-wrapper">
-        <input
-          v-model="searchQuery"
-          type="text"
-          :placeholder="searchMode === 'ingredient' ? 'Wpisz składnik...' : 'Wpisz nazwę dania...'"
-          @input="handleSearchInput"
-          @keydown="handleSuggestionKeydown"
-          @blur="closeSuggestions"
-        />
-
-        <div
-          v-if="currentSuggestions.length && (searchMode === 'name' || showIngredientSuggestions)"
-          class="search-suggestions"
-        >
-          <button
-            v-for="(suggestion, index) in currentSuggestions"
-            :key="suggestion.id"
-            type="button"
-            class="search-suggestion"
-            :class="{
-              active: activeSuggestionIndex === index,
-            }"
-            @click="selectSuggestion(suggestion.label)"
-          >
-            {{ suggestion.label }}
-          </button>
-        </div>
-      </div>
-
-      <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
-
-      <button
-        v-if="hasSearched || browseCategory"
-        type="button"
-        class="button-secondary"
-        @click="resetSearch"
-      >
-        Wyczyść
-      </button>
-    </form>
+    <RecipeSearch
+      v-model:search-query="searchQuery"
+      v-model:search-mode="searchMode"
+      :is-loading="isLoading"
+      :show-clear="hasSearched || browseCategory"
+      :suggestions="currentSuggestions"
+      :show-suggestions="showSearchSuggestions"
+      :active-suggestion-index="activeSuggestionIndex"
+      @submit="searchRecipes"
+      @reset="resetSearch"
+      @input="handleSearchInput"
+      @keydown="handleSuggestionKeydown"
+      @blur="closeSuggestions"
+      @mode-change="handleSearchModeChange"
+      @select-suggestion="selectSuggestion"
+    />
 
     <button
       type="button"
@@ -671,33 +649,15 @@ function handleSearchModeChange() {
   font-size: 1.1rem;
 }
 
-form {
-  display: flex;
-  gap: 12px;
-  max-width: 700px;
-  margin-bottom: 48px;
-}
-
-input {
-  flex: 1;
-  min-width: 0;
-  padding: 16px 20px;
-  border: 1px solid #deded6;
-  border-radius: 12px;
-  background: #ffffff;
-  outline: none;
-}
-
-input:focus {
-  border-color: #1f2937;
-}
-
 button {
   padding: 16px 26px;
   border-radius: 12px;
   background: #1f2937;
   color: white;
   font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 button:disabled {
@@ -726,32 +686,10 @@ button:disabled {
   color: #991b1b;
 }
 
-button {
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-form button:not(:disabled):hover {
-  background: #374151;
-  transform: translateY(-1px);
-}
-
 .recipes-title {
   margin: 48px 0 24px;
   font-size: 1.8rem;
   letter-spacing: -0.03em;
-}
-
-.button-secondary {
-  border: 1px solid #deded6;
-  background: #ffffff;
-  color: #1f2937;
-}
-
-.button-secondary:hover {
-  background: #f1f1eb;
-  color: #fff;
 }
 
 .random-recipe {
@@ -765,65 +703,6 @@ form button:not(:disabled):hover {
   background: #f1f1eb;
 }
 
-.search-mode {
-  padding: 16px;
-  border: 1px solid #deded6;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #1f2937;
-  font: inherit;
-}
-
-.search-input-wrapper {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-
-.search-input-wrapper input {
-  width: 100%;
-}
-
-.search-suggestions {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
-
-  width: 100%;
-  overflow: hidden;
-
-  border: 1px solid #deded6;
-  border-radius: 12px;
-  background: #ffffff;
-
-  box-shadow: 0 14px 30px rgba(31, 41, 55, 0.12);
-}
-
-.search-suggestions .search-suggestion {
-  display: block;
-  width: 100%;
-  padding: 12px 16px;
-
-  border-radius: 0;
-  background: #ffffff;
-  color: #1f2937;
-
-  text-align: left;
-  font-weight: 500;
-}
-
-.search-suggestions .search-suggestion:hover {
-  background: #f1f1eb;
-  color: #1f2937;
-  transform: none;
-}
-
-.search-suggestion.active {
-  background: #f1f1eb;
-  color: #1f2937;
-}
-
 @media (max-width: 1023px) {
   .recipes {
     grid-template-columns: repeat(2, 1fr);
@@ -834,10 +713,6 @@ form button:not(:disabled):hover {
   .home {
     width: min(100% - 28px, 1200px);
     padding: 48px 0;
-  }
-
-  form {
-    flex-direction: column;
   }
 
   .recipes {
