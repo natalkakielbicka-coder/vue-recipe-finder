@@ -9,6 +9,7 @@ import RecipeSearch from '@/components/RecipeSearch.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import { useRecipeCategories } from '@/composables/useRecipeCategories'
 import { useIngredients } from '@/composables/useIngredients'
+import { useNameSuggestions } from '@/composables/useNameSuggestions'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +18,10 @@ const { categoriesList, fetchCategories } = useRecipeCategories()
 const searchQuery = ref('')
 const searchMode = ref('name')
 const { ingredientSuggestions, fetchIngredients, matchIngredient } = useIngredients(
+  searchQuery,
+  searchMode,
+)
+const { nameSuggestions, scheduleNameSuggestions, clearNameSuggestions } = useNameSuggestions(
   searchQuery,
   searchMode,
 )
@@ -36,8 +41,6 @@ const selectedArea = ref('')
 const browseCategory = ref('')
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
-const nameSuggestions = ref([])
-let nameSuggestionsTimeout = null
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -387,58 +390,23 @@ function handleSuggestionKeydown(event) {
 function handleSearchInput() {
   activeSuggestionIndex.value = -1
 
-  clearTimeout(nameSuggestionsTimeout)
-
   if (searchMode.value === 'ingredient') {
     showIngredientSuggestions.value = true
-    nameSuggestions.value = []
+    clearNameSuggestions()
     return
   }
 
   showIngredientSuggestions.value = false
 
-  if (searchQuery.value.trim().length < 2) {
-    nameSuggestions.value = []
-    return
-  }
-
-  nameSuggestionsTimeout = setTimeout(() => {
-    fetchNameSuggestions()
-  }, 300)
+  scheduleNameSuggestions()
 }
 
 function closeSuggestions() {
   setTimeout(() => {
     showIngredientSuggestions.value = false
-    nameSuggestions.value = []
+    clearNameSuggestions()
     activeSuggestionIndex.value = -1
   }, 100)
-}
-
-async function fetchNameSuggestions() {
-  const query = searchQuery.value.trim()
-
-  if (searchMode.value !== 'name' || query.length < 2) {
-    nameSuggestions.value = []
-    return
-  }
-
-  try {
-    const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`,
-    )
-
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać podpowiedzi.')
-    }
-
-    const data = await response.json()
-
-    nameSuggestions.value = (data.meals || []).slice(0, 6)
-  } catch (error) {
-    console.error(error)
-    nameSuggestions.value = []
-  }
 }
 
 const currentSuggestions = computed(() => {
@@ -467,10 +435,8 @@ async function selectSuggestion(value) {
 
 function handleSearchModeChange() {
   showIngredientSuggestions.value = false
-  nameSuggestions.value = []
+  clearNameSuggestions()
   activeSuggestionIndex.value = -1
-
-  clearTimeout(nameSuggestionsTimeout)
 }
 
 const showSearchSuggestions = computed(() => {
