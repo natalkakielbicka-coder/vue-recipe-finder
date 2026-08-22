@@ -39,6 +39,8 @@ async function searchRecipes(resetPage = true) {
   router.replace({
     query: {
       q: query,
+      category: resetPage ? undefined : route.query.category,
+      area: resetPage ? undefined : route.query.area,
       paged: resetPage ? undefined : route.query.paged,
     },
   })
@@ -61,6 +63,8 @@ async function searchRecipes(resetPage = true) {
     recipes.value = data.meals || []
     if (resetPage) {
       currentPage.value = 1
+      selectedCategory.value = ''
+      selectedArea.value = ''
     }
   } catch (error) {
     errorMessage.value = error.message
@@ -74,11 +78,21 @@ async function searchRecipes(resetPage = true) {
 onMounted(async () => {
   const query = route.query.q
   const page = Number(route.query.paged) || 1
+  const category = route.query.category
+  const area = route.query.area
 
   if (typeof query === 'string' && query.trim()) {
     searchQuery.value = query
 
     await searchRecipes(false)
+
+    if (typeof category === 'string') {
+      selectedCategory.value = category
+    }
+
+    if (typeof area === 'string') {
+      selectedArea.value = area
+    }
 
     if (page <= totalPages.value) {
       currentPage.value = page
@@ -130,6 +144,19 @@ const filteredRecipes = computed(() => {
     return matchesCategory && matchesArea
   })
 })
+
+function updateFilters() {
+  currentPage.value = 1
+
+  router.replace({
+    query: {
+      ...route.query,
+      category: selectedCategory.value || undefined,
+      area: selectedArea.value || undefined,
+      paged: undefined,
+    },
+  })
+}
 </script>
 
 <template>
@@ -144,7 +171,7 @@ const filteredRecipes = computed(() => {
     </form>
 
     <div v-if="recipes.length" class="filters">
-      <select v-model="selectedCategory" @change="currentPage = 1">
+      <select v-model="selectedCategory" @change="updateFilters">
         <option value="">Wszystkie kategorie</option>
 
         <option v-for="category in categories" :key="category" :value="category">
@@ -152,7 +179,7 @@ const filteredRecipes = computed(() => {
         </option>
       </select>
 
-      <select v-model="selectedArea" @change="currentPage = 1">
+      <select v-model="selectedArea" @change="updateFilters">
         <option value="">Wszystkie kuchnie</option>
 
         <option v-for="area in areas" :key="area" :value="area">
