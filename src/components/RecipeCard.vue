@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router'
+import { useFavorites } from '@/composables/useFavorites'
 
 defineProps({
   recipe: {
@@ -11,22 +12,34 @@ defineProps({
     default: '',
   },
 })
+
+const { isFavorite, toggleFavorite } = useFavorites()
 </script>
 
 <template>
-  <RouterLink
-    :to="{
-      name: 'recipe',
-      params: {
-        id: recipe.idMeal,
-      },
-      query: {
-        q: searchQuery,
-      },
-    }"
-    class="recipe-card-link"
-  >
-    <article class="recipe-card">
+  <article class="recipe-card">
+    <button
+      type="button"
+      class="recipe-card__favorite"
+      :class="{ active: isFavorite(recipe.idMeal) }"
+      :aria-label="isFavorite(recipe.idMeal) ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'"
+      @click="toggleFavorite(recipe)"
+    >
+      {{ isFavorite(recipe.idMeal) ? '♥' : '♡' }}
+    </button>
+
+    <RouterLink
+      :to="{
+        name: 'recipe',
+        params: {
+          id: recipe.idMeal,
+        },
+        query: {
+          q: searchQuery,
+        },
+      }"
+      class="recipe-card-link"
+    >
       <img :src="recipe.strMealThumb" :alt="recipe.strMeal" />
 
       <div class="recipe-card__content">
@@ -36,13 +49,14 @@ defineProps({
           <span v-if="recipe.strCategory">
             {{ recipe.strCategory }}
           </span>
+
           <span v-if="recipe.strArea">
             {{ recipe.strArea }}
           </span>
         </div>
       </div>
-    </article>
-  </RouterLink>
+    </RouterLink>
+  </article>
 </template>
 
 <style scoped>
@@ -51,6 +65,7 @@ defineProps({
 }
 
 .recipe-card {
+  position: relative;
   height: 100%;
   overflow: hidden;
   border: 1px solid #e5e5dc;
@@ -96,5 +111,34 @@ defineProps({
   color: #62625d;
   font-size: 0.8rem;
   font-weight: 600;
+}
+
+.recipe-card__favorite {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f2937;
+
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.recipe-card__favorite:hover {
+  transform: scale(1.08);
+}
+
+.recipe-card__favorite.active {
+  color: #b42318;
 }
 </style>
