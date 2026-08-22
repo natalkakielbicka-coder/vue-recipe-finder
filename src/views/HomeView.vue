@@ -75,6 +75,27 @@ async function searchRecipes(resetPage = true) {
   }
 }
 
+async function fetchInitialRecipes() {
+  isLoading.value = true
+  errorMessage.value = ''
+
+  try {
+    const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?f=c')
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać przepisów.')
+    }
+
+    const data = await response.json()
+
+    recipes.value = data.meals || []
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    isLoading.value = false
+  }
+}
+
 onMounted(async () => {
   const query = route.query.q
   const page = Number(route.query.paged) || 1
@@ -97,7 +118,11 @@ onMounted(async () => {
     if (page <= totalPages.value) {
       currentPage.value = page
     }
+
+    return
   }
+
+  await fetchInitialRecipes()
 })
 
 const totalPages = computed(() => {
@@ -195,6 +220,10 @@ function updateFilters() {
     </p>
 
     <p v-else-if="hasSearched && recipes.length === 0" class="status-message">Brak wyników.</p>
+
+    <h2 v-if="recipes.length" class="recipes-title">
+      {{ hasSearched ? 'Wyniki wyszukiwania' : 'Odkrywaj przepisy' }}
+    </h2>
 
     <div class="recipes" ref="recipesSection">
       <RecipeCard
@@ -359,6 +388,12 @@ button:not(:disabled):hover {
   background: #ffffff;
   color: #1f2937;
   font: inherit;
+}
+
+.recipes-title {
+  margin: 48px 0 24px;
+  font-size: 1.8rem;
+  letter-spacing: -0.03em;
 }
 
 @media (max-width: 1023px) {

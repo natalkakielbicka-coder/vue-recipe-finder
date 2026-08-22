@@ -1,5 +1,8 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import { useFavorites } from '@/composables/useFavorites'
+
+const { favoriteRecipes } = useFavorites()
 </script>
 
 <template>
@@ -9,7 +12,7 @@ import { RouterLink, RouterView } from 'vue-router'
     <nav>
       <RouterLink to="/"> Przepisy </RouterLink>
 
-      <RouterLink to="/favorites"> Ulubione </RouterLink>
+      <RouterLink to="/favorites"> Ulubione ({{ favoriteRecipes.length }}) </RouterLink>
     </nav>
   </header>
 
