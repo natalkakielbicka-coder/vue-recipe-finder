@@ -26,7 +26,15 @@ const { nameSuggestions, scheduleNameSuggestions, clearNameSuggestions } = useNa
   searchQuery,
   searchMode,
 )
-const { recipes, isLoading, errorMessage, hasSearched, fetchRecipes } = useRecipeSearch()
+const {
+  recipes,
+  isLoading,
+  errorMessage,
+  hasSearched,
+  fetchRecipes,
+  fetchInitialRecipes,
+  fetchCategoryRecipes,
+} = useRecipeSearch()
 const isRandomLoading = ref(false)
 
 const currentPage = ref(1)
@@ -90,27 +98,6 @@ async function searchRecipes(resetPage = true) {
     currentPage.value = 1
     selectedCategory.value = ''
     selectedArea.value = ''
-  }
-}
-
-async function fetchInitialRecipes() {
-  isLoading.value = true
-  errorMessage.value = ''
-
-  try {
-    const response = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?f=c')
-
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać przepisów.')
-    }
-
-    const data = await response.json()
-
-    recipes.value = data.meals || []
-  } catch (error) {
-    errorMessage.value = error.message
-  } finally {
-    isLoading.value = false
   }
 }
 
@@ -255,9 +242,6 @@ async function fetchRecipesByCategory(category) {
     return
   }
 
-  isLoading.value = true
-  errorMessage.value = ''
-  hasSearched.value = false
   browseCategory.value = category
   currentPage.value = 1
   selectedCategory.value = ''
@@ -270,29 +254,7 @@ async function fetchRecipesByCategory(category) {
     },
   })
 
-  try {
-    const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
-    )
-
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać kategorii.')
-    }
-
-    const data = await response.json()
-
-    recipes.value = (data.meals || []).map((recipe) => {
-      return {
-        ...recipe,
-        strCategory: category,
-      }
-    })
-  } catch (error) {
-    errorMessage.value = error.message
-    recipes.value = []
-  } finally {
-    isLoading.value = false
-  }
+  await fetchCategoryRecipes(category)
 }
 
 async function openRandomRecipe() {

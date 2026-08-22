@@ -6,7 +6,7 @@ export function useRecipeSearch() {
   const errorMessage = ref('')
   const hasSearched = ref(false)
 
-  async function fetchRecipes(url) {
+  async function fetchRecipes(url, markAsSearched = true) {
     isLoading.value = true
     errorMessage.value = ''
     hasSearched.value = false
@@ -26,7 +26,39 @@ export function useRecipeSearch() {
       recipes.value = []
     } finally {
       isLoading.value = false
-      hasSearched.value = true
+      hasSearched.value = markAsSearched
+    }
+  }
+
+  async function fetchInitialRecipes() {
+    await fetchRecipes('https://www.themealdb.com/api/json/v1/1/search.php?f=c', false)
+  }
+
+  async function fetchCategoryRecipes(category) {
+    isLoading.value = true
+    errorMessage.value = ''
+    hasSearched.value = false
+
+    try {
+      const response = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`,
+      )
+
+      if (!response.ok) {
+        throw new Error('Nie udało się pobrać kategorii.')
+      }
+
+      const data = await response.json()
+
+      recipes.value = (data.meals || []).map((recipe) => ({
+        ...recipe,
+        strCategory: category,
+      }))
+    } catch (error) {
+      errorMessage.value = error.message
+      recipes.value = []
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -36,5 +68,7 @@ export function useRecipeSearch() {
     errorMessage,
     hasSearched,
     fetchRecipes,
+    fetchInitialRecipes,
+    fetchCategoryRecipes,
   }
 }
