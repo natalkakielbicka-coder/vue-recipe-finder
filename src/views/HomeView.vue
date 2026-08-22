@@ -26,6 +26,7 @@ const categoriesList = ref([])
 const ingredientsList = ref([])
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
+const nameSuggestions = ref([])
 
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
@@ -390,14 +391,15 @@ const ingredientSuggestions = computed(() => {
     .slice(0, 6)
 })
 
-function selectIngredient(ingredient) {
-  searchQuery.value = ingredient
-  showIngredientSuggestions.value = false
-  activeSuggestionIndex.value = -1
-}
-
 function handleSuggestionKeydown(event) {
-  if (!showIngredientSuggestions.value || !ingredientSuggestions.value.length) {
+  const suggestions = currentSuggestions.value
+
+  const suggestionsAreVisible =
+    searchMode.value === 'ingredient'
+      ? showIngredientSuggestions.value
+      : nameSuggestions.value.length > 0
+
+  if (!suggestionsAreVisible || !suggestions.length) {
     return
   }
 
@@ -405,44 +407,98 @@ function handleSuggestionKeydown(event) {
     event.preventDefault()
 
     activeSuggestionIndex.value =
-      activeSuggestionIndex.value < ingredientSuggestions.value.length - 1
-        ? activeSuggestionIndex.value + 1
-        : 0
+      activeSuggestionIndex.value < suggestions.length - 1 ? activeSuggestionIndex.value + 1 : 0
   }
 
   if (event.key === 'ArrowUp') {
     event.preventDefault()
 
     activeSuggestionIndex.value =
-      activeSuggestionIndex.value > 0
-        ? activeSuggestionIndex.value - 1
-        : ingredientSuggestions.value.length - 1
+      activeSuggestionIndex.value > 0 ? activeSuggestionIndex.value - 1 : suggestions.length - 1
   }
 
   if (event.key === 'Enter' && activeSuggestionIndex.value >= 0) {
     event.preventDefault()
 
-    const ingredient = ingredientSuggestions.value[activeSuggestionIndex.value]
+    const suggestion = suggestions[activeSuggestionIndex.value]
 
-    selectIngredient(ingredient.strIngredient)
+    selectSuggestion(suggestion.label)
   }
 
   if (event.key === 'Escape') {
     showIngredientSuggestions.value = false
+    nameSuggestions.value = []
     activeSuggestionIndex.value = -1
   }
 }
 
 function handleSearchInput() {
-  showIngredientSuggestions.value = true
   activeSuggestionIndex.value = -1
+
+  if (searchMode.value === 'ingredient') {
+    showIngredientSuggestions.value = true
+    nameSuggestions.value = []
+    return
+  }
+
+  showIngredientSuggestions.value = false
+  fetchNameSuggestions()
 }
 
 function closeSuggestions() {
   setTimeout(() => {
     showIngredientSuggestions.value = false
+    nameSuggestions.value = []
     activeSuggestionIndex.value = -1
   }, 100)
+}
+
+async function fetchNameSuggestions() {
+  const query = searchQuery.value.trim()
+
+  if (searchMode.value !== 'name' || query.length < 2) {
+    nameSuggestions.value = []
+    return
+  }
+
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`,
+    )
+
+    if (!response.ok) {
+      throw new Error('Nie udało się pobrać podpowiedzi.')
+    }
+
+    const data = await response.json()
+
+    nameSuggestions.value = (data.meals || []).slice(0, 6)
+  } catch (error) {
+    console.error(error)
+    nameSuggestions.value = []
+  }
+}
+
+const currentSuggestions = computed(() => {
+  if (searchMode.value === 'ingredient') {
+    return ingredientSuggestions.value.map((ingredient) => ({
+      id: ingredient.idIngredient,
+      label: ingredient.strIngredient,
+    }))
+  }
+
+  return nameSuggestions.value.map((recipe) => ({
+    id: recipe.idMeal,
+    label: recipe.strMeal,
+  }))
+})
+
+function selectSuggestion(value) {
+  searchQuery.value = value
+
+  showIngredientSuggestions.value = false
+  nameSuggestions.value = []
+  activeSuggestionIndex.value = -1
 }
 </script>
 
@@ -488,20 +544,20 @@ function closeSuggestions() {
         />
 
         <div
-          v-if="showIngredientSuggestions && ingredientSuggestions.length"
+          v-if="currentSuggestions.length && (searchMode === 'name' || showIngredientSuggestions)"
           class="search-suggestions"
         >
           <button
-            v-for="(ingredient, index) in ingredientSuggestions"
-            :key="ingredient.idIngredient"
+            v-for="(suggestion, index) in currentSuggestions"
+            :key="suggestion.id"
             type="button"
             class="search-suggestion"
             :class="{
               active: activeSuggestionIndex === index,
             }"
-            @click="selectIngredient(ingredient.strIngredient)"
+            @click="selectSuggestion(suggestion.label)"
           >
-            {{ ingredient.strIngredient }}
+            {{ suggestion.label }}
           </button>
         </div>
       </div>
