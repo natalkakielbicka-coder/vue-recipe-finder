@@ -39,6 +39,7 @@ async function searchRecipes(resetPage = true) {
   const query = searchQuery.value.trim()
 
   searchQuery.value = query
+  browseCategory.value = ''
 
   router.replace({
     query: {
@@ -306,7 +307,12 @@ async function fetchCategories() {
 
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
 
-      <button v-if="hasSearched" type="button" class="button-secondary" @click="resetSearch">
+      <button
+        v-if="hasSearched || browseCategory"
+        type="button"
+        class="button-secondary"
+        @click="resetSearch"
+      >
         Wyczyść
       </button>
     </form>
