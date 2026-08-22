@@ -322,7 +322,7 @@ async function fetchCategories() {
       </button>
     </form>
 
-    <div v-if="recipes.length" class="filters">
+    <div v-if="recipes.length && !browseCategory" class="filters">
       <select v-model="selectedCategory" @change="updateFilters">
         <option value="">Wszystkie kategorie</option>
 
@@ -347,6 +347,10 @@ async function fetchCategories() {
     </p>
 
     <p v-else-if="hasSearched && recipes.length === 0" class="status-message">Brak wyników.</p>
+
+    <p v-else-if="recipes.length && filteredRecipes.length === 0" class="status-message">
+      Brak przepisów dla wybranych filtrów.
+    </p>
 
     <h2 v-if="recipes.length" class="recipes-title">
       {{
