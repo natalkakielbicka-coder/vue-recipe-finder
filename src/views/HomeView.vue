@@ -11,6 +11,7 @@ import { useRecipeCategories } from '@/composables/useRecipeCategories'
 import { useIngredients } from '@/composables/useIngredients'
 import { useNameSuggestions } from '@/composables/useNameSuggestions'
 import { useRecipeSearch } from '@/composables/useRecipeSearch'
+import { usePagination } from '@/composables/usePagination'
 
 const route = useRoute()
 const router = useRouter()
@@ -37,8 +38,6 @@ const {
 } = useRecipeSearch()
 const isRandomLoading = ref(false)
 
-const currentPage = ref(1)
-const recipesPerPage = 9
 const recipesSection = ref(null)
 
 const selectedCategory = ref('')
@@ -95,7 +94,7 @@ async function searchRecipes(resetPage = true) {
   await fetchRecipes(url)
 
   if (resetPage) {
-    currentPage.value = 1
+    resetPage()
     selectedCategory.value = ''
     selectedArea.value = ''
   }
@@ -128,7 +127,7 @@ onMounted(async () => {
     }
 
     if (page <= totalPages.value) {
-      currentPage.value = page
+      setPage(page)
     }
 
     return
@@ -142,38 +141,8 @@ onMounted(async () => {
   await fetchInitialRecipes()
 })
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredRecipes.value.length / recipesPerPage)
-})
-
-const paginatedRecipes = computed(() => {
-  const start = (currentPage.value - 1) * recipesPerPage
-  const end = start + recipesPerPage
-
-  return filteredRecipes.value.slice(start, end)
-})
-
-const visiblePages = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
-
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, index) => index + 1)
-  }
-
-  if (current <= 4) {
-    return [1, 2, 3, 4, 5, '...', total]
-  }
-
-  if (current >= total - 3) {
-    return [1, '...', total - 4, total - 3, total - 2, total - 1, total]
-  }
-
-  return [1, '...', current - 1, current, current + 1, '...', total]
-})
-
 function changePage(page) {
-  currentPage.value = page
+  setPage(page)
 
   router.push({
     query: {
@@ -206,8 +175,17 @@ const filteredRecipes = computed(() => {
   })
 })
 
+const {
+  currentPage,
+  totalPages,
+  paginatedItems: paginatedRecipes,
+  visiblePages,
+  setPage,
+  resetPage,
+} = usePagination(filteredRecipes, 9)
+
 function updateFilters() {
-  currentPage.value = 1
+  resetPage()
 
   router.replace({
     query: {
@@ -224,7 +202,7 @@ async function resetSearch() {
   searchQuery.value = ''
   selectedCategory.value = ''
   selectedArea.value = ''
-  currentPage.value = 1
+  resetPage()
   hasSearched.value = false
   errorMessage.value = ''
   browseCategory.value = ''
@@ -243,7 +221,7 @@ async function fetchRecipesByCategory(category) {
   }
 
   browseCategory.value = category
-  currentPage.value = 1
+  resetPage()
   selectedCategory.value = ''
   selectedArea.value = ''
   searchQuery.value = ''
