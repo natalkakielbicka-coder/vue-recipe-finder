@@ -10,6 +10,7 @@ import RecipeGrid from '@/components/RecipeGrid.vue'
 import { useRecipeCategories } from '@/composables/useRecipeCategories'
 import { useIngredients } from '@/composables/useIngredients'
 import { useNameSuggestions } from '@/composables/useNameSuggestions'
+import { useRecipeSearch } from '@/composables/useRecipeSearch'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,11 +26,8 @@ const { nameSuggestions, scheduleNameSuggestions, clearNameSuggestions } = useNa
   searchQuery,
   searchMode,
 )
-const recipes = ref([])
-const isLoading = ref(false)
+const { recipes, isLoading, errorMessage, hasSearched, fetchRecipes } = useRecipeSearch()
 const isRandomLoading = ref(false)
-const errorMessage = ref('')
-const hasSearched = ref(false)
 
 const currentPage = ref(1)
 const recipesPerPage = 9
@@ -71,46 +69,27 @@ async function searchRecipes(resetPage = true) {
     },
   })
 
-  isLoading.value = true
-  errorMessage.value = ''
-  hasSearched.value = false
+  let ingredientQuery = query
 
-  try {
-    let ingredientQuery = query
+  if (searchMode.value === 'ingredient') {
+    const matchedIngredient = matchIngredient(query)
 
-    if (searchMode.value === 'ingredient') {
-      const matchedIngredient = matchIngredient(query)
-
-      if (matchedIngredient) {
-        ingredientQuery = matchedIngredient.strIngredient
-      }
+    if (matchedIngredient) {
+      ingredientQuery = matchedIngredient.strIngredient
     }
+  }
 
-    const url =
-      searchMode.value === 'ingredient'
-        ? `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(ingredientQuery)}`
-        : `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`
+  const url =
+    searchMode.value === 'ingredient'
+      ? `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(ingredientQuery)}`
+      : `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`
 
-    const response = await fetch(url)
+  await fetchRecipes(url)
 
-    if (!response.ok) {
-      throw new Error('Nie udało się pobrać przepisów.')
-    }
-
-    const data = await response.json()
-
-    recipes.value = data.meals || []
-    if (resetPage) {
-      currentPage.value = 1
-      selectedCategory.value = ''
-      selectedArea.value = ''
-    }
-  } catch (error) {
-    errorMessage.value = error.message
-    recipes.value = []
-  } finally {
-    isLoading.value = false
-    hasSearched.value = true
+  if (resetPage) {
+    currentPage.value = 1
+    selectedCategory.value = ''
+    selectedArea.value = ''
   }
 }
 
@@ -425,9 +404,8 @@ const currentSuggestions = computed(() => {
 
 async function selectSuggestion(value) {
   searchQuery.value = value
-
   showIngredientSuggestions.value = false
-  nameSuggestions.value = []
+  clearNameSuggestions()
   activeSuggestionIndex.value = -1
 
   await searchRecipes()
