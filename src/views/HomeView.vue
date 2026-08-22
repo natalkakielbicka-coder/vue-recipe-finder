@@ -16,6 +16,9 @@ const currentPage = ref(1)
 const recipesPerPage = 9
 const recipesSection = ref(null)
 
+const selectedCategory = ref('')
+const selectedArea = ref('')
+
 async function searchRecipes(resetPage = true) {
   if (!searchQuery.value.trim()) {
     recipes.value = []
@@ -84,14 +87,14 @@ onMounted(async () => {
 })
 
 const totalPages = computed(() => {
-  return Math.ceil(recipes.value.length / recipesPerPage)
+  return Math.ceil(filteredRecipes.value.length / recipesPerPage)
 })
 
 const paginatedRecipes = computed(() => {
   const start = (currentPage.value - 1) * recipesPerPage
   const end = start + recipesPerPage
 
-  return recipes.value.slice(start, end)
+  return filteredRecipes.value.slice(start, end)
 })
 
 function changePage(page) {
@@ -109,6 +112,24 @@ function changePage(page) {
     block: 'start',
   })
 }
+
+const categories = computed(() => {
+  return [...new Set(recipes.value.map((recipe) => recipe.strCategory).filter(Boolean))].sort()
+})
+
+const areas = computed(() => {
+  return [...new Set(recipes.value.map((recipe) => recipe.strArea).filter(Boolean))].sort()
+})
+
+const filteredRecipes = computed(() => {
+  return recipes.value.filter((recipe) => {
+    const matchesCategory = !selectedCategory.value || recipe.strCategory === selectedCategory.value
+
+    const matchesArea = !selectedArea.value || recipe.strArea === selectedArea.value
+
+    return matchesCategory && matchesArea
+  })
+})
 </script>
 
 <template>
@@ -121,6 +142,24 @@ function changePage(page) {
 
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
     </form>
+
+    <div v-if="recipes.length" class="filters">
+      <select v-model="selectedCategory" @change="currentPage = 1">
+        <option value="">Wszystkie kategorie</option>
+
+        <option v-for="category in categories" :key="category" :value="category">
+          {{ category }}
+        </option>
+      </select>
+
+      <select v-model="selectedArea" @change="currentPage = 1">
+        <option value="">Wszystkie kuchnie</option>
+
+        <option v-for="area in areas" :key="area" :value="area">
+          {{ area }}
+        </option>
+      </select>
+    </div>
 
     <p v-if="isLoading" class="status-message">Ładowanie...</p>
 
@@ -279,14 +318,29 @@ button:not(:disabled):hover {
   background: #374151;
   transform: translateY(-1px);
 }
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
 
-@media (max-width: 900px) {
+.filters select {
+  min-width: 180px;
+  padding: 12px 16px;
+  border: 1px solid #deded6;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  font: inherit;
+}
+
+@media (max-width: 1023px) {
   .recipes {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .home {
     width: min(100% - 28px, 1200px);
     padding: 48px 0;
@@ -298,6 +352,14 @@ button:not(:disabled):hover {
 
   .recipes {
     grid-template-columns: 1fr;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .filters select {
+    width: 100%;
   }
 }
 </style>
