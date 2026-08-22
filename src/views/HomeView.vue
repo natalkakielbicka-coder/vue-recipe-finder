@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import RecipeCard from '@/components/RecipeCard.vue'
 import CategoryBrowser from '@/components/CategoryBrowser.vue'
 import RecipeFilters from '@/components/RecipeFilters.vue'
+import RecipePagination from '@/components/RecipePagination.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -641,32 +642,12 @@ function handleSearchModeChange() {
       />
     </div>
 
-    <div v-if="totalPages > 1" class="pagination">
-      <button type="button" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">
-        Poprzednia
-      </button>
-
-      <template v-for="page in visiblePages" :key="page">
-        <span v-if="page === '...'" class="pagination__dots"> ... </span>
-
-        <button
-          v-else
-          type="button"
-          :class="{ active: currentPage === page }"
-          @click="changePage(page)"
-        >
-          {{ page }}
-        </button>
-      </template>
-
-      <button
-        type="button"
-        :disabled="currentPage === totalPages"
-        @click="changePage(currentPage + 1)"
-      >
-        Następna
-      </button>
-    </div>
+    <RecipePagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :visible-pages="visiblePages"
+      @change-page="changePage"
+    />
   </section>
 </template>
 
@@ -749,35 +730,6 @@ button {
   transition:
     background-color 0.2s ease,
     transform 0.2s ease;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 48px;
-}
-
-.pagination button {
-  min-width: 44px;
-  padding: 10px 14px;
-  border: 1px solid #deded6;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #1f2937;
-}
-
-.pagination button:hover:not(:disabled),
-.pagination button.active {
-  border-color: #1f2937;
-  background: #1f2937;
-  color: #ffffff;
-}
-
-.pagination button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 form button:not(:disabled):hover {
