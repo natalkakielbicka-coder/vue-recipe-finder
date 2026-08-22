@@ -6,6 +6,7 @@ import CategoryBrowser from '@/components/CategoryBrowser.vue'
 import RecipeFilters from '@/components/RecipeFilters.vue'
 import RecipePagination from '@/components/RecipePagination.vue'
 import RecipeSearch from '@/components/RecipeSearch.vue'
+import RecipeGrid from '@/components/RecipeGrid.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -611,13 +612,8 @@ const showSearchSuggestions = computed(() => {
       }}
     </h2>
 
-    <div class="recipes" ref="recipesSection">
-      <RecipeCard
-        v-for="recipe in paginatedRecipes"
-        :key="recipe.idMeal"
-        :recipe="recipe"
-        :search-query="searchQuery"
-      />
+    <div ref="recipesSection">
+      <RecipeGrid :recipes="paginatedRecipes" />
     </div>
 
     <RecipePagination
@@ -665,12 +661,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.recipes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
 .status-message {
   margin: -24px 0 40px;
   padding: 16px 20px;
@@ -703,20 +693,10 @@ button:disabled {
   background: #f1f1eb;
 }
 
-@media (max-width: 1023px) {
-  .recipes {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 767px) {
   .home {
     width: min(100% - 28px, 1200px);
     padding: 48px 0;
-  }
-
-  .recipes {
-    grid-template-columns: 1fr;
   }
 }
 </style>

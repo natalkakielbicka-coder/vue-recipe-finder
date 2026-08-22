@@ -7,10 +7,6 @@ defineProps({
     type: Object,
     required: true,
   },
-  searchQuery: {
-    type: String,
-    default: '',
-  },
 })
 
 const route = useRoute()
