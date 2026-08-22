@@ -7,6 +7,7 @@ const route = useRoute()
 const router = useRouter()
 
 const searchQuery = ref('')
+const searchMode = ref('name')
 const recipes = ref([])
 const isLoading = ref(false)
 const isRandomLoading = ref(false)
@@ -45,6 +46,7 @@ async function searchRecipes(resetPage = true) {
   router.replace({
     query: {
       q: query,
+      mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
       category: resetPage ? undefined : route.query.category,
       area: resetPage ? undefined : route.query.area,
       paged: resetPage ? undefined : route.query.paged,
@@ -56,9 +58,12 @@ async function searchRecipes(resetPage = true) {
   hasSearched.value = false
 
   try {
-    const response = await fetch(
-      `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`,
-    )
+    const url =
+      searchMode.value === 'ingredient'
+        ? `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(query)}`
+        : `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`
+
+    const response = await fetch(url)
 
     if (!response.ok) {
       throw new Error('Nie udało się pobrać przepisów.')
@@ -109,9 +114,12 @@ onMounted(async () => {
   const page = Number(route.query.paged) || 1
   const category = route.query.category
   const area = route.query.area
+  const mode = route.query.mode
 
   if (typeof query === 'string' && query.trim()) {
     searchQuery.value = query
+
+    searchMode.value = mode === 'ingredient' ? 'ingredient' : 'name'
 
     await searchRecipes(false)
 
@@ -203,6 +211,7 @@ function updateFilters() {
   router.replace({
     query: {
       ...route.query,
+      mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
       category: selectedCategory.value || undefined,
       area: selectedArea.value || undefined,
       paged: undefined,
@@ -344,6 +353,12 @@ async function openRandomRecipe() {
     </div>
 
     <form @submit.prevent="searchRecipes">
+      <select v-model="searchMode" class="search-mode">
+        <option value="name">Po nazwie</option>
+
+        <option value="ingredient">Po składniku</option>
+      </select>
+
       <input v-model="searchQuery" type="text" placeholder="Wpisz nazwę dania..." />
 
       <button type="submit" :disabled="isLoading">{{ isLoading ? 'Szukam...' : 'Szukaj' }}</button>
@@ -641,6 +656,15 @@ form button:not(:disabled):hover {
 
 .random-recipe:hover:not(:disabled) {
   background: #f1f1eb;
+}
+
+.search-mode {
+  padding: 16px;
+  border: 1px solid #deded6;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f2937;
+  font: inherit;
 }
 
 @media (max-width: 1023px) {
