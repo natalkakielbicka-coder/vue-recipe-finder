@@ -256,6 +256,12 @@ async function openRandomRecipe() {
   }
 }
 
+function resetSuggestions() {
+  showIngredientSuggestions.value = false
+  clearNameSuggestions()
+  activeSuggestionIndex.value = -1
+}
+
 async function handleSuggestionKeydown(event) {
   const suggestions = currentSuggestions.value
 
@@ -291,9 +297,7 @@ async function handleSuggestionKeydown(event) {
   }
 
   if (event.key === 'Escape') {
-    showIngredientSuggestions.value = false
-    clearNameSuggestions()
-    activeSuggestionIndex.value = -1
+    resetSuggestions()
   }
 }
 
@@ -313,9 +317,7 @@ function handleSearchInput() {
 
 function closeSuggestions() {
   setTimeout(() => {
-    showIngredientSuggestions.value = false
-    clearNameSuggestions()
-    activeSuggestionIndex.value = -1
+    resetSuggestions()
   }, 100)
 }
 
@@ -335,17 +337,14 @@ const currentSuggestions = computed(() => {
 
 async function selectSuggestion(value) {
   searchQuery.value = value
-  showIngredientSuggestions.value = false
-  clearNameSuggestions()
-  activeSuggestionIndex.value = -1
+
+  resetSuggestions()
 
   await searchRecipes()
 }
 
 function handleSearchModeChange() {
-  showIngredientSuggestions.value = false
-  clearNameSuggestions()
-  activeSuggestionIndex.value = -1
+  resetSuggestions()
 }
 
 const showSearchSuggestions = computed(() => {
