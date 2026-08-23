@@ -4,6 +4,14 @@ A recipe discovery application built with Vue 3 and TheMealDB API.
 
 Users can search for recipes by name or ingredient, browse categories, save favorites, view recently visited recipes and explore detailed recipe information.
 
+## Live Demo
+
+[View Live Demo](https://natalkakielbicka-coder.github.io/vue-recipe-finder/)
+
+## Screenshot
+
+![Recipe Finder](./docs/recipe-finder.png)
+
 ## Features
 
 - Search recipes by name
