@@ -188,9 +188,8 @@ function updateFilters() {
 }
 
 async function resetSearch() {
-  searchQuery.value = ''
-  resetFilters()
-  resetPage()
+  resetRecipeControls()
+
   hasSearched.value = false
   errorMessage.value = ''
   browseCategory.value = ''
@@ -208,12 +207,9 @@ async function fetchRecipesByCategory(category, updateUrl = true) {
     return
   }
 
+  resetRecipeControls()
+
   browseCategory.value = category
-
-  resetPage()
-  resetFilters()
-
-  searchQuery.value = ''
 
   if (updateUrl) {
     router.replace({
@@ -354,6 +350,13 @@ const showSearchSuggestions = computed(() => {
 
   return nameSuggestions.value.length > 0
 })
+
+function resetRecipeControls() {
+  searchQuery.value = ''
+  resetFilters()
+  resetPage()
+  resetSuggestions()
+}
 </script>
 
 <template>
