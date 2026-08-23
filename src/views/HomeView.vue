@@ -7,6 +7,7 @@ import RecipePagination from '@/components/RecipePagination.vue'
 import RecipeSearch from '@/components/RecipeSearch.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
 import RecentlyViewedRecipes from '@/components/RecentlyViewedRecipes.vue'
+import RecipeSkeletonGrid from '@/components/RecipeSkeletonGrid.vue'
 import { useRecipeCategories } from '@/composables/useRecipeCategories'
 import { useIngredients } from '@/composables/useIngredients'
 import { useNameSuggestions } from '@/composables/useNameSuggestions'
@@ -525,7 +526,7 @@ function resetRecipeControls() {
       @change="updateFilters"
     />
 
-    <p v-if="isLoading" class="status-message">Ładowanie...</p>
+    <RecipeSkeletonGrid v-if="isLoading" :count="9" />
 
     <p v-else-if="errorMessage" class="status-message status-message--error">
       {{ errorMessage }}
@@ -550,15 +551,19 @@ function resetRecipeControls() {
     </h2>
 
     <div ref="recipesSection">
-      <RecipeGrid :recipes="paginatedRecipes" />
+      <div v-if="!isLoading" ref="recipesSection">
+        <RecipeGrid :recipes="paginatedRecipes" />
+      </div>
     </div>
 
-    <RecipePagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :visible-pages="visiblePages"
-      @change-page="changePage"
-    />
+    <div v-if="!isLoading" ref="recipesSection">
+      <RecipePagination
+        :current-page="currentPage"
+        :total-pages="totalPages"
+        :visible-pages="visiblePages"
+        @change-page="changePage"
+      />
+    </div>
 
     <RecentlyViewedRecipes :recipes="recentlyViewedRecipes" @clear="clearRecentlyViewed" />
   </section>
