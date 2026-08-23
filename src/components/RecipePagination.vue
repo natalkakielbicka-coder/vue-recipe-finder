@@ -83,4 +83,11 @@ const emit = defineEmits(['change-page'])
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+@media all and (max-width: 480px) {
+  .pagination button:first-child,
+  .pagination button:last-child {
+    flex-basis: 100%;
+  }
+}
 </style>

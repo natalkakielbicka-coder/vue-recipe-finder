@@ -6,7 +6,13 @@ const { toastMessage, toastType, isToastVisible } = useToast()
 
 <template>
   <Transition name="toast">
-    <div v-if="isToastVisible" class="toast" :class="`toast--${toastType}`">
+    <div
+      v-if="isToastVisible"
+      class="toast"
+      :class="`toast--${toastType}`"
+      role="status"
+      aria-live="polite"
+    >
       {{ toastMessage }}
     </div>
   </Transition>

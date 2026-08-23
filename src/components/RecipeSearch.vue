@@ -61,14 +61,19 @@ function handleModeChange(event) {
 
 <template>
   <form class="recipe-search" @submit.prevent="emit('submit')">
-    <select :value="searchMode" class="search-mode" @change="handleModeChange">
+    <label for="search-mode" class="sr-only"> Sposób wyszukiwania </label>
+
+    <select id="search-mode" :value="searchMode" class="search-mode" @change="handleModeChange">
       <option value="name">Po nazwie</option>
 
       <option value="ingredient">Po składniku</option>
     </select>
 
     <div class="search-input-wrapper">
+      <label for="recipe-search" class="sr-only"> Szukaj przepisu </label>
+
       <input
+        id="recipe-search"
         :value="searchQuery"
         type="text"
         :placeholder="searchMode === 'ingredient' ? 'Wpisz składnik...' : 'Wpisz nazwę dania...'"
@@ -174,7 +179,7 @@ function handleModeChange(event) {
 }
 
 .recipe-search .button-secondary:hover {
-  background: #f1f1eb;
+  background: #f1f1eb !important;
   color: #1f2937;
   transform: none;
 }
@@ -215,6 +220,18 @@ function handleModeChange(event) {
   background: #f1f1eb !important;
   color: #1f2937;
   transform: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 767px) {

@@ -495,7 +495,7 @@ function resetRecipeControls() {
       v-model:search-query="searchQuery"
       v-model:search-mode="searchMode"
       :is-loading="isLoading"
-      :show-clear="hasSearched || browseCategory"
+      :show-clear="hasSearched || !!browseCategory"
       :suggestions="currentSuggestions"
       :show-suggestions="showSearchSuggestions"
       :active-suggestion-index="activeSuggestionIndex"

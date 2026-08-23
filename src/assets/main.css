@@ -48,3 +48,11 @@ a {
 #app {
   min-height: 100vh;
 }
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #1f2937;
+  outline-offset: 3px;
+}

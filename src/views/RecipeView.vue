@@ -548,4 +548,19 @@ async function copyIngredients() {
     grid-template-columns: 1fr;
   }
 }
+
+@media all and (max-width: 480px) {
+  .copy-ingredients {
+    width: 100%;
+  }
+
+  .recipe-links {
+    flex-direction: column;
+  }
+
+  .recipe-links a {
+    justify-content: center;
+    width: 100%;
+  }
+}
 </style>
