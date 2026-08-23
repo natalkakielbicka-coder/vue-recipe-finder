@@ -217,7 +217,12 @@ async function copyIngredients() {
 
         <h2>Składniki</h2>
 
-        <button type="button" class="copy-ingredients" @click="copyIngredients">
+        <button
+          type="button"
+          class="copy-ingredients"
+          aria-label="Kopiuj składniki do schowka"
+          @click="copyIngredients"
+        >
           Kopiuj składniki
         </button>
 
