@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 const recentlyViewedRecipes = ref(JSON.parse(localStorage.getItem('recentlyViewedRecipes') || '[]'))
 
@@ -11,6 +12,8 @@ watch(
 )
 
 export function useRecentlyViewed() {
+  const { showToast } = useToast()
+
   function addRecentlyViewed(recipe) {
     if (!recipe) {
       return
@@ -33,6 +36,8 @@ export function useRecentlyViewed() {
 
   function clearRecentlyViewed() {
     recentlyViewedRecipes.value = []
+
+    showToast('Wyczyszczono ostatnio oglądane')
   }
 
   return {

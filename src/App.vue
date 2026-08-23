@@ -1,6 +1,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import { useFavorites } from '@/composables/useFavorites'
+import ToastMessage from '@/components/ToastMessage.vue'
 
 const { favoriteRecipes } = useFavorites()
 </script>
@@ -19,6 +20,8 @@ const { favoriteRecipes } = useFavorites()
   <main>
     <RouterView />
   </main>
+
+  <ToastMessage />
 </template>
 
 <style scoped>

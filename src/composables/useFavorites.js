@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 const favoriteRecipes = ref(JSON.parse(localStorage.getItem('favoriteRecipes') || '[]'))
 
@@ -11,6 +12,8 @@ watch(
 )
 
 export function useFavorites() {
+  const { showToast } = useToast()
+
   function isFavorite(id) {
     return favoriteRecipes.value.some((recipe) => recipe.idMeal === id)
   }
@@ -18,6 +21,8 @@ export function useFavorites() {
   function toggleFavorite(recipe) {
     if (isFavorite(recipe.idMeal)) {
       favoriteRecipes.value = favoriteRecipes.value.filter((item) => item.idMeal !== recipe.idMeal)
+
+      showToast('Usunięto z ulubionych')
 
       return
     }
@@ -29,10 +34,14 @@ export function useFavorites() {
       strCategory: recipe.strCategory,
       strArea: recipe.strArea,
     })
+
+    showToast('Dodano do ulubionych')
   }
 
   function clearFavorites() {
     favoriteRecipes.value = []
+
+    showToast('Usunięto wszystkie ulubione')
   }
 
   return {
