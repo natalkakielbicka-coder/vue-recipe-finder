@@ -119,6 +119,17 @@ watch(
     await fetchRecipe()
   },
 )
+
+const recipeTags = computed(() => {
+  if (!recipe.value?.strTags) {
+    return []
+  }
+
+  return recipe.value.strTags
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+})
 </script>
 
 <template>
@@ -160,6 +171,10 @@ watch(
           <span v-if="recipe.strArea">
             {{ recipe.strArea }}
           </span>
+        </div>
+
+        <div v-if="recipeTags.length" class="recipe-tags">
+          <span v-for="tag in recipeTags" :key="tag" class="recipe-tag"> #{{ tag }} </span>
         </div>
 
         <div class="recipe-details__heading">
@@ -437,6 +452,22 @@ watch(
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.recipe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.recipe-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f8f8f4;
+  color: #77776f;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 @media (max-width: 1023px) {
