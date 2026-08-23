@@ -37,6 +37,7 @@ const {
   fetchRecipes,
   fetchInitialRecipes,
   fetchCategoryRecipes,
+  fetchRandomRecipe,
 } = useRecipeSearch()
 
 const { selectedCategory, selectedArea, categories, areas, filteredRecipes, resetFilters } =
@@ -226,14 +227,7 @@ async function openRandomRecipe() {
   isRandomLoading.value = true
 
   try {
-    const response = await fetch('https://www.themealdb.com/api/json/v1/1/random.php')
-
-    if (!response.ok) {
-      throw new Error('Nie udało się wylosować przepisu.')
-    }
-
-    const data = await response.json()
-    const randomRecipe = data.meals?.[0]
+    const randomRecipe = await fetchRandomRecipe()
 
     if (!randomRecipe) {
       return
