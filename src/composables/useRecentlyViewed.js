@@ -1,18 +1,11 @@
 import { ref, watch } from 'vue'
 
-const recentlyViewedRecipes = ref(
-  JSON.parse(
-    localStorage.getItem('recentlyViewedRecipes') || '[]',
-  ),
-)
+const recentlyViewedRecipes = ref(JSON.parse(localStorage.getItem('recentlyViewedRecipes') || '[]'))
 
 watch(
   recentlyViewedRecipes,
   (recipes) => {
-    localStorage.setItem(
-      'recentlyViewedRecipes',
-      JSON.stringify(recipes),
-    )
+    localStorage.setItem('recentlyViewedRecipes', JSON.stringify(recipes))
   },
   { deep: true },
 )
@@ -23,10 +16,9 @@ export function useRecentlyViewed() {
       return
     }
 
-    recentlyViewedRecipes.value =
-      recentlyViewedRecipes.value.filter(
-        (item) => item.idMeal !== recipe.idMeal,
-      )
+    recentlyViewedRecipes.value = recentlyViewedRecipes.value.filter(
+      (item) => item.idMeal !== recipe.idMeal,
+    )
 
     recentlyViewedRecipes.value.unshift({
       idMeal: recipe.idMeal,
@@ -36,12 +28,16 @@ export function useRecentlyViewed() {
       strArea: recipe.strArea,
     })
 
-    recentlyViewedRecipes.value =
-      recentlyViewedRecipes.value.slice(0, 6)
+    recentlyViewedRecipes.value = recentlyViewedRecipes.value.slice(0, 6)
+  }
+
+  function clearRecentlyViewed() {
+    recentlyViewedRecipes.value = []
   }
 
   return {
     recentlyViewedRecipes,
     addRecentlyViewed,
+    clearRecentlyViewed,
   }
 }

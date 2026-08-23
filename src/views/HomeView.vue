@@ -42,7 +42,7 @@ const {
 const { selectedCategory, selectedArea, categories, areas, filteredRecipes, resetFilters } =
   useRecipeFilters(recipes)
 
-const { recentlyViewedRecipes } = useRecentlyViewed()
+const { recentlyViewedRecipes, clearRecentlyViewed } = useRecentlyViewed()
 
 const isRandomLoading = ref(false)
 
@@ -438,7 +438,7 @@ const showSearchSuggestions = computed(() => {
       @change-page="changePage"
     />
 
-    <RecentlyViewedRecipes :recipes="recentlyViewedRecipes" />
+    <RecentlyViewedRecipes :recipes="recentlyViewedRecipes" @clear="clearRecentlyViewed" />
   </section>
 </template>
 
