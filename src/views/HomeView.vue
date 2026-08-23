@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CategoryBrowser from '@/components/CategoryBrowser.vue'
 import RecipeFilters from '@/components/RecipeFilters.vue'
@@ -53,7 +53,7 @@ const browseCategory = ref('')
 const showIngredientSuggestions = ref(false)
 const activeSuggestionIndex = ref(-1)
 
-async function searchRecipes(shouldResetPage = true) {
+async function searchRecipes(shouldResetPage = true, updateUrl = true) {
   if (!searchQuery.value.trim()) {
     recipes.value = []
     errorMessage.value = ''
@@ -63,7 +63,7 @@ async function searchRecipes(shouldResetPage = true) {
     resetFilters()
     resetPage()
 
-    router.replace({
+    router.push({
       query: {},
     })
 
@@ -75,15 +75,17 @@ async function searchRecipes(shouldResetPage = true) {
   searchQuery.value = query
   browseCategory.value = ''
 
-  router.replace({
-    query: {
-      q: query,
-      mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
-      category: shouldResetPage ? undefined : route.query.category,
-      area: shouldResetPage ? undefined : route.query.area,
-      paged: shouldResetPage ? undefined : route.query.paged,
-    },
-  })
+  if (updateUrl) {
+    router.push({
+      query: {
+        q: query,
+        mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
+        category: shouldResetPage ? undefined : route.query.category,
+        area: shouldResetPage ? undefined : route.query.area,
+        paged: shouldResetPage ? undefined : route.query.paged,
+      },
+    })
+  }
 
   let ingredientQuery = query
 
@@ -124,7 +126,7 @@ onMounted(async () => {
 
     searchMode.value = mode === 'ingredient' ? 'ingredient' : 'name'
 
-    await searchRecipes(false)
+    await searchRecipes(false, false)
 
     if (typeof category === 'string') {
       selectedCategory.value = category
@@ -148,6 +150,130 @@ onMounted(async () => {
 
   await fetchInitialRecipes()
 })
+
+watch(
+  () => route.query.paged,
+  (paged) => {
+    const page = Number(paged) || 1
+
+    if (page >= 1 && page <= totalPages.value) {
+      setPage(page)
+      return
+    }
+
+    resetPage()
+  },
+)
+
+watch(
+  () => [route.query.q, route.query.mode],
+  async ([query, mode]) => {
+    if (typeof query !== 'string' || !query.trim()) {
+      if (!route.query.browse) {
+        resetRecipeControls()
+        browseCategory.value = ''
+
+        await fetchInitialRecipes()
+      }
+
+      return
+    }
+
+    const newMode = mode === 'ingredient' ? 'ingredient' : 'name'
+
+    if (query === searchQuery.value && newMode === searchMode.value) {
+      return
+    }
+
+    searchQuery.value = query
+    searchMode.value = newMode
+    browseCategory.value = ''
+
+    resetSuggestions()
+
+    await searchRecipes(false, false)
+
+    if (typeof route.query.category === 'string') {
+      selectedCategory.value = route.query.category
+    } else {
+      selectedCategory.value = ''
+    }
+
+    if (typeof route.query.area === 'string') {
+      selectedArea.value = route.query.area
+    } else {
+      selectedArea.value = ''
+    }
+
+    const page = Number(route.query.paged) || 1
+
+    if (page >= 1 && page <= totalPages.value) {
+      setPage(page)
+    } else {
+      resetPage()
+    }
+  },
+)
+
+watch(
+  () => route.query.browse,
+  async (browse) => {
+    if (typeof browse === 'string' && browse.trim()) {
+      if (browse === browseCategory.value) {
+        return
+      }
+
+      await fetchRecipesByCategory(browse, false)
+
+      const page = Number(route.query.paged) || 1
+
+      if (page >= 1 && page <= totalPages.value) {
+        setPage(page)
+      }
+
+      return
+    }
+
+    // Jeśli URL nie ma już browse,
+    // ale przechodzimy do wyszukiwania,
+    // jego watcher zajmie się resztą.
+    if (route.query.q) {
+      return
+    }
+
+    // Wróciliśmy do zwykłego Home.
+    if (browseCategory.value) {
+      resetRecipeControls()
+      browseCategory.value = ''
+
+      await fetchInitialRecipes()
+    }
+  },
+)
+
+watch(
+  () => [route.query.category, route.query.area],
+  ([category, area]) => {
+    const newCategory = typeof category === 'string' ? category : ''
+
+    const newArea = typeof area === 'string' ? area : ''
+
+    if (newCategory === selectedCategory.value && newArea === selectedArea.value) {
+      return
+    }
+
+    selectedCategory.value = newCategory
+    selectedArea.value = newArea
+
+    const page = Number(route.query.paged) || 1
+
+    if (page >= 1 && page <= totalPages.value) {
+      setPage(page)
+    } else {
+      resetPage()
+    }
+  },
+)
 
 function changePage(page) {
   setPage(page)
@@ -177,7 +303,7 @@ const {
 function updateFilters() {
   resetPage()
 
-  router.replace({
+  router.push({
     query: {
       ...route.query,
       mode: searchMode.value === 'ingredient' ? 'ingredient' : undefined,
@@ -195,7 +321,7 @@ async function resetSearch() {
   errorMessage.value = ''
   browseCategory.value = ''
 
-  router.replace({
+  router.push({
     query: {},
   })
 
@@ -213,7 +339,7 @@ async function fetchRecipesByCategory(category, updateUrl = true) {
   browseCategory.value = category
 
   if (updateUrl) {
-    router.replace({
+    router.push({
       query: {
         browse: category,
       },
