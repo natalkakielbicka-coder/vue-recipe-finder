@@ -107,6 +107,10 @@ async function fetchSimilarRecipes(category) {
     similarRecipes.value = (data.meals || [])
       .filter((item) => item.idMeal !== recipe.value.idMeal)
       .slice(0, 3)
+      .map((item) => ({
+        ...item,
+        strCategory: category,
+      }))
   } catch (error) {
     console.error(error)
     similarRecipes.value = []
