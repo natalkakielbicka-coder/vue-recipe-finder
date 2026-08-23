@@ -6,12 +6,14 @@ import RecipeFilters from '@/components/RecipeFilters.vue'
 import RecipePagination from '@/components/RecipePagination.vue'
 import RecipeSearch from '@/components/RecipeSearch.vue'
 import RecipeGrid from '@/components/RecipeGrid.vue'
+import RecentlyViewedRecipes from '@/components/RecentlyViewedRecipes.vue'
 import { useRecipeCategories } from '@/composables/useRecipeCategories'
 import { useIngredients } from '@/composables/useIngredients'
 import { useNameSuggestions } from '@/composables/useNameSuggestions'
 import { useRecipeSearch } from '@/composables/useRecipeSearch'
 import { usePagination } from '@/composables/usePagination'
 import { useRecipeFilters } from '@/composables/useRecipeFilters'
+import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,6 +41,8 @@ const {
 
 const { selectedCategory, selectedArea, categories, areas, filteredRecipes, resetFilters } =
   useRecipeFilters(recipes)
+
+const { recentlyViewedRecipes } = useRecentlyViewed()
 
 const isRandomLoading = ref(false)
 
@@ -433,6 +437,8 @@ const showSearchSuggestions = computed(() => {
       :visible-pages="visiblePages"
       @change-page="changePage"
     />
+
+    <RecentlyViewedRecipes :recipes="recentlyViewedRecipes" />
   </section>
 </template>
 

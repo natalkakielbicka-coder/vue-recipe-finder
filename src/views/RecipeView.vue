@@ -3,10 +3,12 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useFavorites } from '@/composables/useFavorites'
 import RecipeCard from '@/components/RecipeCard.vue'
+import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
 
 const route = useRoute()
 
 const { isFavorite, toggleFavorite } = useFavorites()
+const { addRecentlyViewed } = useRecentlyViewed()
 
 const recipe = ref(null)
 const similarRecipes = ref([])
@@ -53,6 +55,7 @@ async function fetchRecipe() {
     recipe.value = data.meals?.[0] || null
 
     if (recipe.value) {
+      addRecentlyViewed(recipe.value)
       await fetchSimilarRecipes(recipe.value.strCategory)
     }
   } catch (error) {
