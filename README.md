@@ -1,44 +1,90 @@
-# .
+# Recipe Finder
 
-This template should help get you started developing with Vue 3 in Vite.
+A recipe discovery application built with Vue 3 and TheMealDB API.
 
-## Recommended IDE Setup
+Users can search for recipes by name or ingredient, browse categories, save favorites, view recently visited recipes and explore detailed recipe information.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Features
 
-## Recommended Browser Setup
+- Search recipes by name
+- Search recipes by ingredient
+- Search suggestions with keyboard navigation
+- Browse recipes by category
+- Filter recipes by category and cuisine
+- Pagination synchronized with the URL
+- Browser Back / Forward navigation support
+- Recipe details with ingredients and instructions
+- Copy ingredients to clipboard
+- Recipe source and YouTube video
+- Similar recipes
+- Favorite recipes stored in localStorage
+- Recently viewed recipes stored in localStorage
+- Toast notifications
+- Random recipe discovery
+- Responsive layout
+- Loading skeletons
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Tech Stack
 
-## Customize configuration
+- Vue 3
+- Vue Router
+- Composition API
+- JavaScript
+- TheMealDB API
+- CSS
+- localStorage
+- Clipboard API
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Project Structure
+
+The application was refactored into reusable components and composables.
+
+### Components
+
+- `RecipeSearch`
+- `CategoryBrowser`
+- `RecipeFilters`
+- `RecipeGrid`
+- `RecipeCard`
+- `RecipePagination`
+- `RecentlyViewedRecipes`
+- `RecipeSkeleton`
+- `ToastMessage`
+
+### Composables
+
+- `useRecipeSearch`
+- `useRecipeFilters`
+- `usePagination`
+- `useIngredients`
+- `useNameSuggestions`
+- `useRecipeCategories`
+- `useFavorites`
+- `useRecentlyViewed`
+- `useToast`
+
+## What I Learned
+
+While building this project I practiced:
+
+- Vue reactivity with `ref` and `computed`
+- component communication using props and emits
+- custom `v-model`
+- reusable composables
+- asynchronous API requests
+- Vue Router and URL state synchronization
+- watching route changes with `watch`
+- working with localStorage
+- keyboard-accessible search suggestions
+- handling loading and empty states
+- refactoring a large view into smaller components and composables
+
+## API
+
+Recipe data is provided by [TheMealDB](https://www.themealdb.com/).
 
 ## Project Setup
 
-```sh
+```bash
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```
