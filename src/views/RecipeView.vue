@@ -4,8 +4,10 @@ import { RouterLink, useRoute } from 'vue-router'
 import { useFavorites } from '@/composables/useFavorites'
 import RecipeCard from '@/components/RecipeCard.vue'
 import { useRecentlyViewed } from '@/composables/useRecentlyViewed'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
+const { showToast } = useToast()
 
 const { isFavorite, toggleFavorite } = useFavorites()
 const { addRecentlyViewed } = useRecentlyViewed()
@@ -130,6 +132,24 @@ const recipeTags = computed(() => {
     .map((tag) => tag.trim())
     .filter(Boolean)
 })
+
+async function copyIngredients() {
+  if (!ingredients.value.length) {
+    return
+  }
+
+  const text = ingredients.value.map((item) => `${item.ingredient} — ${item.measure}`).join('\n')
+
+  try {
+    await navigator.clipboard.writeText(text)
+
+    showToast('Składniki skopiowane')
+  } catch (error) {
+    console.error(error)
+
+    showToast('Nie udało się skopiować składników', 'error')
+  }
+}
 </script>
 
 <template>
@@ -192,6 +212,10 @@ const recipeTags = computed(() => {
         </div>
 
         <h2>Składniki</h2>
+
+        <button type="button" class="copy-ingredients" @click="copyIngredients">
+          Kopiuj składniki
+        </button>
 
         <ul class="ingredients">
           <li v-for="item in ingredients" :key="item.ingredient">
@@ -468,6 +492,31 @@ const recipeTags = computed(() => {
   color: #77776f;
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+.copy-ingredients {
+  margin-bottom: 20px;
+  padding: 12px 18px;
+
+  border: 1px solid #deded6;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #1f2937;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.copy-ingredients:hover {
+  background: #f1f1eb;
+  transform: translateY(-1px);
 }
 
 @media (max-width: 1023px) {
